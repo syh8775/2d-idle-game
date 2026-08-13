@@ -29,3 +29,6 @@ Thumbs.db
 
 # Crash reports
 sysinfo.txt
+
+# Unity UI screenshots
+Assets/Screenshots/
