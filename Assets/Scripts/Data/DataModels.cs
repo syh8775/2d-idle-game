@@ -27,7 +27,6 @@ public class CharacterDefinition
     public string Role;
     public string BattleAssetPath;
     public string MotionAssetFolder;
-    public int Level;
     public int HitPoints;
     public int Attack;
     public int Defense;

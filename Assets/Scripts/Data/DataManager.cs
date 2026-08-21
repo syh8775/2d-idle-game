@@ -154,7 +154,6 @@ public class DataManager : MonoBehaviour
                 Role = Required(row, "role"),
                 BattleAssetPath = Optional(row, "battleAssetPath"),
                 MotionAssetFolder = Optional(row, "motionAssetFolder"),
-                Level = Integer(row, "level"),
                 HitPoints = Integer(row, "hp"),
                 Attack = Integer(row, "attack"),
                 Defense = Integer(row, "defense"),
