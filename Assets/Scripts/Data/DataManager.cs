@@ -82,6 +82,8 @@ public class DataManager : MonoBehaviour
             LoadPartySlots();
             LoadEnemyFormations();
 
+            DataValidator.Validate(this);
+
             IsLoaded = true;
             Debug.Log(
                 "데이터 로드 완료 - 캐릭터 " + characters.Count + "명, 스킬 " +
