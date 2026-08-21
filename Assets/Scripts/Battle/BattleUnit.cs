@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 
 public enum BattleUnitSide
 {
@@ -33,6 +33,8 @@ public class BattleUnit
     public int Speed { get; private set; }
     public BattleUnitState State { get; private set; }
     private float attackTimer;
+    public event Action<BattleUnit> HitPointsChanged;
+    public event Action<BattleUnit> Died;
 
     public bool IsAlive
     {
@@ -138,6 +140,16 @@ public class BattleUnit
         else
         {
             ChangeState(BattleUnitState.Hit);
+        }
+
+        if (HitPointsChanged != null)
+        {
+            HitPointsChanged.Invoke(this);
+        }
+
+        if (!IsAlive && Died != null)
+        {
+            Died(this);
         }
 
         return actualDamage;

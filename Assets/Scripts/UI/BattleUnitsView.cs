@@ -50,8 +50,6 @@ public class BattleUnitsView : MonoBehaviour
 
         CacheSlots();
 
-        InvokeRepeating("RefreshCurrentStatuses", 0f, 0.05f);
-
         battleManager.SessionStarted += HandleSessionStarted;
         battleManager.SessionCompleted += HandleSessionCompleted;
 
@@ -59,16 +57,6 @@ public class BattleUnitsView : MonoBehaviour
         {
             BindUnits(battleManager.CurrentSession);
         }
-    }
-
-    private void RefreshCurrentStatuses()
-    {
-        if (battleManager == null || battleManager.CurrentSession == null)
-        {
-            return;
-        }
-
-        RefreshStatuses(battleManager.CurrentSession);
     }
 
     private void OnDestroy()
@@ -82,6 +70,7 @@ public class BattleUnitsView : MonoBehaviour
         if (boundSession != null)
         {
             boundSession.AttackResolved -= HandleAttackResolved;
+            UnsubscribeUnitEvents(boundSession);
         }
 
         if (resultView != null)
@@ -136,6 +125,7 @@ public class BattleUnitsView : MonoBehaviour
         if (boundSession != null)
         {
             boundSession.AttackResolved -= HandleAttackResolved;
+            UnsubscribeUnitEvents(boundSession);
         }
 
         boundSession = session;
@@ -152,6 +142,9 @@ public class BattleUnitsView : MonoBehaviour
             {
                 continue;
             }
+
+            unit.HitPointsChanged += HandleHitPointsChanged;
+            unit.Died += HandleUnitDied;
 
             if (unit.Side == BattleUnitSide.Ally)
             {
@@ -232,21 +225,9 @@ public class BattleUnitsView : MonoBehaviour
 
         Transform character = slot.Find("Character");
 
-        if (character != null)
+        if (character != null && unit.IsAlive)
         {
-            if (unit.IsAlive)
-            {
-                character.gameObject.SetActive(true);
-            }
-            else
-            {
-                Image characterImage = character.GetComponent<Image>();
-
-                if (characterImage != null && feedbackView != null)
-                {
-                    feedbackView.StartDeathFade(unit, characterImage);
-                }
-            }
+            character.gameObject.SetActive(true);
         }
 
         Transform statusOverlay = slot.Find("StatusOverlay");
@@ -373,6 +354,36 @@ public class BattleUnitsView : MonoBehaviour
                 target,
                 attackerImage,
                 targetImage));
+    }
+
+    private void HandleHitPointsChanged(BattleUnit unit)
+    {
+        RefreshStatus(unit);
+    }
+
+    private void HandleUnitDied(BattleUnit unit)
+    {
+        if (feedbackView == null)
+        {
+            return;
+        }
+
+        Image image = GetCharacterImage(unit);
+        feedbackView.StartDeathFade(unit, image);
+    }
+
+    private void UnsubscribeUnitEvents(BattleSession session)
+    {
+        if (session == null || session.Units == null)
+        {
+            return;
+        }
+
+        foreach (BattleUnit unit in session.Units)
+        {
+            unit.HitPointsChanged -= HandleHitPointsChanged;
+            unit.Died -= HandleUnitDied;
+        }
     }
 
     private Image GetCharacterImage(BattleUnit unit)
