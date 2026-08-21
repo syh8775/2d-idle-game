@@ -1,0 +1,16 @@
+fieldName,description,type,rule,category
+id,모든 데이터의 고유 키,문자열,중복 금지,CODE
+assetPath,Unity Assets 기준 상대 경로,문자열,실제 파일이 없으면 빈 값,ASSET
+status,데이터 확정 상태,문자열,CONFIRMED_ASSET / ACTIVE_PROTOTYPE / DRAFT_*,WORKFLOW
+rarity,캐릭터 희귀도,문자열,R / SR / SSR,CHARACTER
+role,캐릭터 전투 역할,문자열,Striker / Defender / Ranger / Caster / Supporter / Assassin,CHARACTER
+hp / attack / defense,기본 전투 능력치,정수,밸런스 조정 대상,BALANCE
+manaCost,스킬 사용 마나,정수,기본 공격은 0,SKILL
+cooldownSeconds,스킬 재사용 대기 시간,실수,초 단위,SKILL
+damageMultiplier,공격력에 곱하는 계수,실수,밸런스 조정 대상,SKILL
+formationSlot,전투 화면 배치 슬롯,정수,아군 4 / 적군 9,FORMATION
+spawnDelaySeconds,적 생성 지연 시간,실수,현재 프로토타입은 0,FORMATION
+reward,스테이지 클리어 보상,정수,gold,REWARD
+DRAFT_*,기획 확정 전 데이터,상태값,코드에서 경고 대상으로 처리,WORKFLOW
+ACTIVE_PROTOTYPE,1차 테스트 기준 데이터,상태값,현재 화면과 연결할 대상,WORKFLOW
+CONFIRMED_ASSET,현재 Unity 에셋과 연결된 데이터,상태값,캐릭터 에셋 경로 확인 완료,WORKFLOW
