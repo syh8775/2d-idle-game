@@ -1,0 +1,6 @@
+DNFBitBitv2 Font Notice
+
+Copyright (c) 2023 NEOPLE Inc. All rights reserved.
+Font file: DNFBitBitv2.otf (unmodified)
+Official source and license: https://df.nexon.com/data/font/dnfbitbitv2
+Commercial game embedding is permitted when this copyright notice is included. Do not sell the font file itself.
