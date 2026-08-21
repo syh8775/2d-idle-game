@@ -155,6 +155,30 @@ public class BattleUnit
         return actualDamage;
     }
 
+    public int ApplyHealing(int healing)
+    {
+        if (!IsAlive || healing <= 0 || CurrentHitPoints >= MaxHitPoints)
+        {
+            return 0;
+        }
+
+        int previousHitPoints = CurrentHitPoints;
+
+        CurrentHitPoints += healing;
+        if (CurrentHitPoints > MaxHitPoints)
+        {
+            CurrentHitPoints = MaxHitPoints;
+        }
+
+        int actualHealing = CurrentHitPoints - previousHitPoints;
+
+        if (HitPointsChanged != null)
+        {
+            HitPointsChanged(this);
+        }
+        return actualHealing;
+    }
+
     public void ChangeState(BattleUnitState nextState)
     {
         if (State == BattleUnitState.Dead && nextState != BattleUnitState.Dead)

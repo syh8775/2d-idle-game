@@ -7,7 +7,8 @@ role,캐릭터 전투 역할,문자열,Striker / Defender / Ranger / Caster / Su
 hp / attack / defense,기본 전투 능력치,정수,밸런스 조정 대상,BALANCE
 manaCost,스킬 사용 마나,정수,기본 공격은 0,SKILL
 cooldownSeconds,스킬 재사용 대기 시간,실수,초 단위,SKILL
-damageMultiplier,공격력에 곱하는 계수,실수,밸런스 조정 대상,SKILL
+effectType,스킬이 실행할 효과 종류,문자열,SingleDamage / AreaDamage / Heal,SKILL
+effectMultiplier,스킬 효과량에 곱하는 계수,실수,밸런스 조정 대상,SKILL
 formationSlot,전투 화면 배치 슬롯,정수,아군 4 / 적군 9,FORMATION
 spawnDelaySeconds,적 생성 지연 시간,실수,현재 프로토타입은 0,FORMATION
 reward,스테이지 클리어 보상,정수,gold,REWARD

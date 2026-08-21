@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 public class BattleSession
@@ -121,6 +121,16 @@ public class BattleSession
         return actualDamage;
     }
 
+    public int ApplyHealing(BattleUnit target, int healing)
+    {
+        if (State != BattleSessionState.Running || target == null || !Units.Contains(target))
+        {
+            return 0;
+        }
+
+        return target.ApplyHealing(healing);
+    }
+
     private void CheckBattleOutcome()
     {
         int aliveAllies = 0;
@@ -195,7 +205,7 @@ public class BattleSession
         }
     }
 
-    private BattleUnit FindTarget(BattleUnit attacker)
+    public BattleUnit FindTarget(BattleUnit attacker)
     {
         BattleUnit closestTarget = null;
         int closestDistance = int.MaxValue;

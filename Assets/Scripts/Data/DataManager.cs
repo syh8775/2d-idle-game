@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using UnityEngine;
@@ -186,10 +186,11 @@ public class DataManager : MonoBehaviour
                 Id = Required(row, "id"),
                 CharacterId = Required(row, "characterId"),
                 SkillType = Required(row, "skillType"),
+                EffectType = Required(row, "effectType"),
                 DisplayName = Required(row, "displayName"),
                 ManaCost = Integer(row, "manaCost"),
                 CooldownSeconds = Decimal(row, "cooldownSeconds"),
-                DamageMultiplier = Decimal(row, "damageMultiplier"),
+                EffectMultiplier = Decimal(row, "effectMultiplier"),
                 IconAssetPath = Optional(row, "iconAssetPath"),
                 Status = Required(row, "status")
             };

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 
 public enum BattleSessionState
 {
@@ -19,6 +19,21 @@ public enum BattleOutcome
 }
 
 [Serializable]
+public class SkillDefinition
+{
+    public string Id;
+    public string CharacterId;
+    public string SkillType;
+    public string EffectType;
+    public string DisplayName;
+    public int ManaCost;
+    public float CooldownSeconds;
+    public float EffectMultiplier;
+    public string IconAssetPath;
+    public string Status;
+}
+
+[Serializable]
 public class CharacterDefinition
 {
     public string Id;
@@ -34,20 +49,6 @@ public class CharacterDefinition
     public string NormalSkillId;
     public string SpecialSkillId;
     public string UltimateSkillId;
-    public string Status;
-}
-
-[Serializable]
-public class SkillDefinition
-{
-    public string Id;
-    public string CharacterId;
-    public string SkillType;
-    public string DisplayName;
-    public int ManaCost;
-    public float CooldownSeconds;
-    public float DamageMultiplier;
-    public string IconAssetPath;
     public string Status;
 }
 
