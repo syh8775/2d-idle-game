@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public sealed class BattleUnitFeedbackView
+public class BattleUnitFeedbackView
 {
     private const float DeathFadeDuration = 0.4f;
 
