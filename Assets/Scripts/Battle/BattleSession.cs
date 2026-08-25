@@ -8,6 +8,10 @@ public class BattleSession
     public BattleOutcome Outcome { get; private set; }
     public float ElapsedSeconds { get; private set; }
     public List<BattleUnit> Units { get; private set; }
+    public List<BattleSkill> Skills { get; private set; }
+    public bool IsAutoEnabled { get; private set; }
+
+    private int nextAutoSkillIndex;
 
     public bool IsFinished
     {
@@ -20,8 +24,9 @@ public class BattleSession
 
     public event Action<BattleSession> StateChanged;
     public event Action<BattleUnit, BattleUnit, int> AttackResolved;
+    public event Action<BattleSkill> SkillUsed;
 
-    public BattleSession(StageDefinition stage, DataManager dataManager)
+    public BattleSession(StageDefinition stage, DataManager dataManager, PartyFormation formation)
     {
         if (stage == null)
         {
@@ -33,13 +38,21 @@ public class BattleSession
             throw new Exception("전투를 시작하려면 데이터 매니저가 필요합니다.");
         }
 
+        if (formation == null)
+        {
+            throw new Exception("전투를 시작하려면 파티 편성이 필요합니다.");
+        }
+
         Stage = stage;
         State = BattleSessionState.Ready;
         Outcome = BattleOutcome.None;
         ElapsedSeconds = 0f;
         Units = new List<BattleUnit>();
+        Skills = new List<BattleSkill>();
+        IsAutoEnabled = false;
+        nextAutoSkillIndex = 0;
 
-        CreateUnits(dataManager);
+        CreateUnits(dataManager, formation);
     }
 
     public int GetUnitCount(BattleUnitSide side)
@@ -55,6 +68,33 @@ public class BattleSession
         }
 
         return count;
+    }
+
+    public void SetAutoEnabled(bool isEnabled)
+    {
+        IsAutoEnabled = isEnabled;
+    }
+
+    public bool TryUseSkill(int skillIndex)
+    {
+        if (State != BattleSessionState.Running || skillIndex < 0 || skillIndex >= Skills.Count)
+        {
+            return false;
+        }
+
+        BattleSkill skill = Skills[skillIndex];
+
+        if (!skill.TryUse(this))
+        {
+            return false;
+        }
+
+        if (SkillUsed != null)
+        {
+            SkillUsed(skill);
+        }
+
+        return true;
     }
 
     public void Start()
@@ -84,6 +124,11 @@ public class BattleSession
         }
 
         ProcessAttacks(deltaSeconds);
+
+        if (State == BattleSessionState.Running)
+        {
+            ProcessSkills(deltaSeconds);
+        }
     }
     public void Complete(BattleOutcome outcome)
     {
@@ -165,6 +210,32 @@ public class BattleSession
         }
     }
 
+    private void ProcessSkills(float deltaSeconds)
+    {
+        foreach (BattleSkill skill in Skills)
+        {
+            skill.Tick(deltaSeconds);
+        }
+
+        if (!IsAutoEnabled || Skills.Count == 0)
+        {
+            return;
+        }
+
+        for (int checkedCount = 0; checkedCount < Skills.Count; checkedCount++)
+        {
+            int skillIndex = (nextAutoSkillIndex + checkedCount) % Skills.Count;
+
+            if (!TryUseSkill(skillIndex))
+            {
+                continue;
+            }
+
+            nextAutoSkillIndex = (skillIndex + 1) % Skills.Count;
+            return;
+        }
+    }
+
     private void ProcessAttacks(float deltaSeconds)
     {
         foreach (BattleUnit unit in Units)
@@ -233,30 +304,30 @@ public class BattleSession
 
         return closestTarget;
     }
-    private void CreateUnits(DataManager dataManager)
+    private void CreateUnits(DataManager dataManager, PartyFormation formation)
     {
         int allyCount = 0;
-        List<PartySlotDefinition> partySlots =
-            new List<PartySlotDefinition>(dataManager.PartySlots.Values);
-        partySlots.Sort(ComparePartySlots);
+        List<PartyMember> partySlots = new List<PartyMember>(formation.Members);
+        partySlots.Sort(CompareMembers);
 
-        foreach (PartySlotDefinition slot in partySlots)
+        foreach (PartyMember member in partySlots)
         {
-            if (slot.Side != "Ally" || allyCount >= Stage.PartySize)
+            if (allyCount >= Stage.PartySize)
             {
-                continue;
+                break;
             }
 
             CharacterDefinition character;
-            if (!dataManager.TryGetCharacter(
-                    slot.DefaultCharacterId, out character))
+
+            if (!dataManager.TryGetCharacter(member.CharacterId, out character))
             {
-                throw new Exception(
-                    "아군 캐릭터 데이터를 찾을 수 없습니다: " +
-                    slot.DefaultCharacterId);
+                throw new Exception("아군 캐릭터 데이터를 찾을 수 없습니다: " + member.CharacterId);
             }
 
-            Units.Add(new BattleUnit(character, slot));
+            BattleUnit ally = new BattleUnit(character, member);
+
+            Units.Add(ally);
+            CreateBattleSkill(ally, character, dataManager);
             allyCount++;
         }
 
@@ -293,9 +364,32 @@ public class BattleSession
         }
     }
 
-    private static int ComparePartySlots(
-        PartySlotDefinition left,
-        PartySlotDefinition right)
+    private void CreateBattleSkill(BattleUnit caster, CharacterDefinition character, DataManager dataManager)
+    {
+        SkillDefinition skill;
+
+        if (!dataManager.TryGetSkill(character.SpecialSkillId, out skill))
+        {
+            throw new Exception(
+                "아군 특수 스킬 데이터를 찾을 수 없습니다: " + character.SpecialSkillId);
+        }
+
+        ISkillEffect effect = CreateSkillEffect(skill.EffectType);
+        Skills.Add(new BattleSkill(skill, caster, effect));
+    }
+
+    private static ISkillEffect CreateSkillEffect(string effectType)
+    {
+        switch (effectType)
+        {
+            case "SingleDamage": return new SingleDamageEffect();
+            case "AreaDamage": return new AreaDamageEffect();
+            case "Heal": return new HealEffect();
+            default: throw new Exception("지원하지 않는 스킬 효과입니다." + effectType);
+        }
+    }
+
+    private static int CompareMembers(PartyMember left, PartyMember right)
     {
         return left.SlotIndex.CompareTo(right.SlotIndex);
     }

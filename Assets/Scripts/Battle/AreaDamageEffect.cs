@@ -1,4 +1,4 @@
-﻿public sealed class AreaDamageEffect : ISkillEffect
+﻿public class AreaDamageEffect : ISkillEffect
 {
     public bool Apply(BattleSession session, BattleUnit caster, SkillDefinition skill)
     {

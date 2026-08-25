@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 
 public class GameManager : MonoBehaviour
@@ -22,6 +22,8 @@ public class GameManager : MonoBehaviour
     {
         get { return battleManager; }
     }
+
+    public PartyFormation Formation { get; private set; }
 
 private void Awake()
     {
@@ -72,9 +74,11 @@ private void Awake()
             return;
         }
 
-        battleManager.Initialize(dataManager);
+        Formation = new PartyFormation();
+        Formation.Load(dataManager.PartySlots.Values);
+
+        battleManager.Initialize(dataManager, Formation);
         IsInitialized = true;
-        Debug.Log("게임 매니저 초기화 완료");
     }
 
     public bool StartStage(string stageId)

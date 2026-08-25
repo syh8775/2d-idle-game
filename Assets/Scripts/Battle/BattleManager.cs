@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using UnityEngine;
 
 public class BattleManager : MonoBehaviour
@@ -7,6 +7,8 @@ public class BattleManager : MonoBehaviour
 
     public bool IsInitialized { get; private set; }
     public BattleSession CurrentSession { get; private set; }
+
+    private PartyFormation formation;
 
     public BattleSessionState State
     {
@@ -25,14 +27,15 @@ public class BattleManager : MonoBehaviour
     public event Action<BattleSession> SessionStateChanged;
     public event Action<BattleSession> SessionCompleted;
 
-    public void Initialize(DataManager source)
+    public void Initialize(DataManager source, PartyFormation party)
     {
-        if (source == null)
+        if (source == null || party == null)
         {
-            throw new Exception("전투 매니저에 데이터 매니저가 필요합니다.");
+            throw new Exception("전투 매니저에 데이터 매니저와 편성이 필요합니다.");
         }
 
         dataManager = source;
+        formation = party;
         IsInitialized = true;
     }
 
@@ -63,7 +66,7 @@ public class BattleManager : MonoBehaviour
                 CurrentSession.StateChanged -= HandleSessionStateChanged;
             }
 
-            CurrentSession = new BattleSession(stage, dataManager);
+            CurrentSession = new BattleSession(stage, dataManager, formation);
         }
         catch (Exception exception)
         {

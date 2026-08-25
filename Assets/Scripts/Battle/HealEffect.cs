@@ -1,4 +1,4 @@
-﻿public sealed class HealEffect : ISkillEffect
+﻿public class HealEffect : ISkillEffect
 {
     public bool Apply(BattleSession session, BattleUnit caster, SkillDefinition skill)
     {

@@ -1,4 +1,4 @@
-﻿public sealed class SingleDamageEffect : ISkillEffect
+﻿public class SingleDamageEffect : ISkillEffect
 {
     public bool Apply(BattleSession session, BattleUnit caster, SkillDefinition skill)
     {

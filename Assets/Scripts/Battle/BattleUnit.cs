@@ -45,9 +45,9 @@ public class BattleUnit
     {
         get { return IsAlive && attackTimer <= 0f; }
     }
-    public BattleUnit(CharacterDefinition definition, PartySlotDefinition slot)
+    public BattleUnit(CharacterDefinition definition, PartyMember member)
     {
-        if (definition == null || slot == null)
+        if (definition == null || member == null)
         {
             throw new Exception("아군 전투 유닛 데이터가 비어 있습니다.");
         }
@@ -57,9 +57,11 @@ public class BattleUnit
         BattleAssetPath = definition.BattleAssetPath;
         MotionAssetFolder = definition.MotionAssetFolder;
         Side = BattleUnitSide.Ally;
-        FormationSlot = slot.FormationSlot;
-        Row = slot.Row;
-        Column = slot.Column;
+        FormationSlot = member.FormationSlot;
+
+        Row = (member.FormationSlot - 1) / 3 + 1;
+        Column = (member.FormationSlot - 1) % 3 + 1;
+
         MaxHitPoints = definition.HitPoints;
         CurrentHitPoints = definition.HitPoints;
         Attack = definition.Attack;
