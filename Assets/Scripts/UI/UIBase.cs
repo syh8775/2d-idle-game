@@ -7,6 +7,11 @@ public class UIBase : MonoBehaviour
 
     public UIType Type { get { return type; } }
 
+    public void SetType(UIType value)
+    {
+        type = value;
+    }
+
     public virtual void Show()
     {
         gameObject.SetActive(true);

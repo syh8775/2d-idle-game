@@ -45,7 +45,7 @@ public class BattleUnit
     {
         get { return IsAlive && attackTimer <= 0f; }
     }
-    public BattleUnit(CharacterDefinition definition, PartyMember member)
+    public BattleUnit(CharacterDefinition definition, PartyMember member, int level)
     {
         if (definition == null || member == null)
         {
@@ -62,10 +62,10 @@ public class BattleUnit
         Row = (member.FormationSlot - 1) / 3 + 1;
         Column = (member.FormationSlot - 1) % 3 + 1;
 
-        MaxHitPoints = definition.HitPoints;
-        CurrentHitPoints = definition.HitPoints;
-        Attack = definition.Attack;
-        Defense = definition.Defense;
+        MaxHitPoints = GameUtil.GetLevelStat(definition.HitPoints, level);
+        CurrentHitPoints = MaxHitPoints;
+        Attack = GameUtil.GetLevelStat(definition.Attack, level);
+        Defense = GameUtil.GetLevelStat(definition.Defense, level);
         Speed = definition.Speed;
         State = BattleUnitState.Idle;
         attackTimer = 0f;

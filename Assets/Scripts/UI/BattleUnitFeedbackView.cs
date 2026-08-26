@@ -10,10 +10,16 @@ public class BattleUnitFeedbackView
     private readonly MonoBehaviour coroutineHost;
     private readonly Sprite[] allyAttackFrames;
     private readonly Sprite[] char002AttackFrames;
+    private readonly Sprite[] char003Frames;
+    private readonly Sprite[] char004Frames;
     private readonly float char001AttackFrameDuration;
     private readonly float char002AttackFrameDuration;
+    private readonly float char003Duration;
+    private readonly float char004Duration;
     private readonly int char001AttackHitFrame;
     private readonly int char002AttackHitFrame;
+    private readonly int char003HitFrame;
+    private readonly int char004HitFrame;
 
     private readonly HashSet<BattleUnit> deathFadingUnits =
         new HashSet<BattleUnit>();
@@ -32,10 +38,16 @@ public class BattleUnitFeedbackView
         MonoBehaviour coroutineHost,
         Sprite[] allyAttackFrames,
         Sprite[] char002AttackFrames,
+        Sprite[] char003Frames,
+        Sprite[] char004Frames,
         float char001AttackFrameDuration,
         float char002AttackFrameDuration,
+        float char003Duration,
+        float char004Duration,
         int char001AttackHitFrame,
-        int char002AttackHitFrame)
+        int char002AttackHitFrame,
+        int char003HitFrame,
+        int char004HitFrame)
     {
         if (coroutineHost == null)
         {
@@ -45,10 +57,16 @@ public class BattleUnitFeedbackView
         this.coroutineHost = coroutineHost;
         this.allyAttackFrames = allyAttackFrames ?? new Sprite[0];
         this.char002AttackFrames = char002AttackFrames ?? new Sprite[0];
+        this.char003Frames = char003Frames ?? new Sprite[0];
+        this.char004Frames = char004Frames ?? new Sprite[0];
         this.char001AttackFrameDuration = char001AttackFrameDuration;
         this.char002AttackFrameDuration = char002AttackFrameDuration;
+        this.char003Duration = char003Duration;
+        this.char004Duration = char004Duration;
         this.char001AttackHitFrame = char001AttackHitFrame;
         this.char002AttackHitFrame = char002AttackHitFrame;
+        this.char003HitFrame = char003HitFrame;
+        this.char004HitFrame = char004HitFrame;
     }
 
     public void ResetSession()
@@ -57,7 +75,7 @@ public class BattleUnitFeedbackView
         hitReactionVersions.Clear();
     }
 
-    public void RegisterCharacter(Image image)
+    public void RegisterCharacter(Image image, BattleUnit unit)
     {
         if (image == null)
         {
@@ -76,10 +94,18 @@ public class BattleUnitFeedbackView
                 image.rectTransform.localScale);
         }
 
-        if (!originalCharacterSprites.ContainsKey(image))
+        Sprite[] frames = GetFrames(unit);
+        Sprite originalSprite = image.sprite;
+
+        if (unit != null &&
+            unit.Side == BattleUnitSide.Ally &&
+            frames.Length > 0 &&
+            frames[0] != null)
         {
-            originalCharacterSprites.Add(image, image.sprite);
+            originalSprite = frames[0];
         }
+
+        originalCharacterSprites[image] = originalSprite;
 
         if (!originalCharacterPositions.ContainsKey(image.rectTransform))
         {
@@ -134,6 +160,7 @@ public class BattleUnitFeedbackView
         {
             coroutineHost.StartCoroutine(
                 PlayAttackFrames(
+                    attacker,
                     attackerImage,
                     attackFrames,
                     frameDuration));
@@ -271,6 +298,38 @@ public class BattleUnitFeedbackView
             frameDuration = char002AttackFrameDuration;
             hitFrame = char002AttackHitFrame;
         }
+        else if (attacker != null && attacker.Id == "CHAR_003")
+        {
+            attackFrames = char003Frames;
+            frameDuration = char003Duration;
+            hitFrame = char003HitFrame;
+        }
+        else if (attacker != null && attacker.Id == "CHAR_004")
+        {
+            attackFrames = char004Frames;
+            frameDuration = char004Duration;
+            hitFrame = char004HitFrame;
+        }
+    }
+
+    private Sprite[] GetFrames(BattleUnit unit)
+    {
+        if (unit != null && unit.Id == "CHAR_002")
+        {
+            return char002AttackFrames;
+        }
+
+        if (unit != null && unit.Id == "CHAR_003")
+        {
+            return char003Frames;
+        }
+
+        if (unit != null && unit.Id == "CHAR_004")
+        {
+            return char004Frames;
+        }
+
+        return allyAttackFrames;
     }
 
     private IEnumerator FadeOutCharacter(Image image)
@@ -310,6 +369,7 @@ public class BattleUnitFeedbackView
     }
 
     private IEnumerator PlayAttackFrames(
+        BattleUnit unit,
         Image image,
         Sprite[] attackFrames,
         float frameDuration)
@@ -323,7 +383,7 @@ public class BattleUnitFeedbackView
 
         for (int i = 0; i < attackFrames.Length; i++)
         {
-            if (image == null)
+            if (image == null || deathFadingUnits.Contains(unit))
             {
                 yield break;
             }
@@ -337,6 +397,7 @@ public class BattleUnitFeedbackView
         }
 
         if (image != null &&
+            !deathFadingUnits.Contains(unit) &&
             originalCharacterSprites.TryGetValue(
                 image,
                 out Sprite originalSprite))

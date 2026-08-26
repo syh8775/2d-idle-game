@@ -7,10 +7,16 @@ public class BattleUnitsView : MonoBehaviour
     [SerializeField] private Sprite[] allyAttackFrames = new Sprite[0];
     // 다음 캐릭터를 같은 재생 코드로 시험하기 위한 CHAR_002 공격 프레임입니다.
     [SerializeField] private Sprite[] char002AttackFrames = new Sprite[0];
+    [SerializeField] private Sprite[] char003Frames = new Sprite[0];
+    [SerializeField] private Sprite[] char004Frames = new Sprite[0];
     [SerializeField] private float char001AttackFrameDuration = 0.02f;
     [SerializeField] private float char002AttackFrameDuration = 0.02f;
+    [SerializeField] private float char003Duration = 0.02f;
+    [SerializeField] private float char004Duration = 0.02f;
     [SerializeField] private int char001AttackHitFrame = 17;
     [SerializeField] private int char002AttackHitFrame = 17;
+    [SerializeField] private int char003HitFrame = 17;
+    [SerializeField] private int char004HitFrame = 17;
 
     private BattleManager battleManager;
     private BattleSession boundSession;
@@ -40,10 +46,16 @@ public class BattleUnitsView : MonoBehaviour
             this,
             allyAttackFrames,
             char002AttackFrames,
+            char003Frames,
+            char004Frames,
             char001AttackFrameDuration,
             char002AttackFrameDuration,
+            char003Duration,
+            char004Duration,
             char001AttackHitFrame,
-            char002AttackHitFrame);
+            char002AttackHitFrame,
+            char003HitFrame,
+            char004HitFrame);
         resultView = new BattleResultView(this);
         resultView.Initialize(transform);
         resultView.RetryRequested += HandleRetryRequested;
@@ -307,7 +319,7 @@ public class BattleUnitsView : MonoBehaviour
             return false;
         }
 
-        feedbackView.RegisterCharacter(image);
+        feedbackView.RegisterCharacter(image, unit);
         slot.gameObject.SetActive(true);
         character.gameObject.SetActive(true);
         image.enabled = true;
@@ -341,7 +353,7 @@ public class BattleUnitsView : MonoBehaviour
         BattleUnit target,
         int damage)
     {
-        if (damage <= 0 || feedbackView == null)
+        if (!isActiveAndEnabled || damage <= 0 || feedbackView == null)
         {
             return;
         }
@@ -363,7 +375,7 @@ public class BattleUnitsView : MonoBehaviour
 
     private void HandleUnitDied(BattleUnit unit)
     {
-        if (feedbackView == null)
+        if (!isActiveAndEnabled || feedbackView == null)
         {
             return;
         }

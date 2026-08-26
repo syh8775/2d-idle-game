@@ -10,6 +10,7 @@ public class BattleSession
     public List<BattleUnit> Units { get; private set; }
     public List<BattleSkill> Skills { get; private set; }
     public bool IsAutoEnabled { get; private set; }
+    public int RewardGold { get; private set; }
 
     private int nextAutoSkillIndex;
 
@@ -26,7 +27,7 @@ public class BattleSession
     public event Action<BattleUnit, BattleUnit, int> AttackResolved;
     public event Action<BattleSkill> SkillUsed;
 
-    public BattleSession(StageDefinition stage, DataManager dataManager, PartyFormation formation)
+    public BattleSession(StageDefinition stage, DataManager dataManager, PartyFormation formation, PlayerProgressModel progress)
     {
         if (stage == null)
         {
@@ -43,6 +44,11 @@ public class BattleSession
             throw new Exception("전투를 시작하려면 파티 편성이 필요합니다.");
         }
 
+        if (progress == null)
+        {
+            throw new Exception("전투를 시작하려면 진행 데이터가 필요합니다.");
+        }
+
         Stage = stage;
         State = BattleSessionState.Ready;
         Outcome = BattleOutcome.None;
@@ -52,7 +58,7 @@ public class BattleSession
         IsAutoEnabled = false;
         nextAutoSkillIndex = 0;
 
-        CreateUnits(dataManager, formation);
+        CreateUnits(dataManager, formation, progress);
     }
 
     public int GetUnitCount(BattleUnitSide side)
@@ -139,6 +145,14 @@ public class BattleSession
 
         Outcome = outcome;
         SetState(BattleSessionState.Completed);
+    }
+
+    public void SetReward(int gold)
+    {
+        if (RewardGold == 0 && gold > 0)
+        {
+            RewardGold = gold;
+        }
     }
 
     public void Cancel()
@@ -304,7 +318,7 @@ public class BattleSession
 
         return closestTarget;
     }
-    private void CreateUnits(DataManager dataManager, PartyFormation formation)
+    private void CreateUnits(DataManager dataManager, PartyFormation formation, PlayerProgressModel progress)
     {
         int allyCount = 0;
         List<PartyMember> partySlots = new List<PartyMember>(formation.Members);
@@ -324,7 +338,15 @@ public class BattleSession
                 throw new Exception("아군 캐릭터 데이터를 찾을 수 없습니다: " + member.CharacterId);
             }
 
-            BattleUnit ally = new BattleUnit(character, member);
+            CharacterProgressModel characterProgress = progress.GetCharacter(member.CharacterId);
+            int level = 1;
+
+            if (characterProgress != null)
+            {
+                level = characterProgress.Level;
+            }
+
+            BattleUnit ally = new BattleUnit(character, member, level);
 
             Units.Add(ally);
             CreateBattleSkill(ally, character, dataManager);

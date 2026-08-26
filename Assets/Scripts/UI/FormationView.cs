@@ -8,7 +8,7 @@ public class FormationView : MonoBehaviour
     private UIButton openButton;
     private UIButton applyButton;
     private Text message;
-    private Button[] slotButtons = new Button[9];
+    private Button[] slotButtons = new Button[4];
     private Button[] memberButtons = new Button[4];
     private string selectedId = string.Empty;
 

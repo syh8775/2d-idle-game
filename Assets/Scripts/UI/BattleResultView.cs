@@ -126,7 +126,7 @@ public class BattleResultView
 
         if (session.Outcome == BattleOutcome.Victory)
         {
-            resultText.text = "Victory";
+            resultText.text = "Victory\nGold +" + session.RewardGold;
         }
         else if (session.Outcome == BattleOutcome.Timeout)
         {

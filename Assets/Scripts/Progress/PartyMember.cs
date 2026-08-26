@@ -14,7 +14,7 @@ public class PartyMember
 public class PartyFormation
 {
     private const int MinimumSlot = 1;
-    private const int MaximumSlot = 9;
+    private const int MaximumSlot = 4;
 
     public List<PartyMember> Members = new List<PartyMember>();
 

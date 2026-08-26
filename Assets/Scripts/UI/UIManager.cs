@@ -20,6 +20,17 @@ public class UIManager : MonoBehaviour
         }
     }
 
+    public bool Register(UIBase view)
+    {
+        if (view == null || views.ContainsKey(view.Type))
+        {
+            return false;
+        }
+
+        views.Add(view.Type, view);
+        return true;
+    }
+
     public bool Switch(UIType type)
     {
         if (type == UIType.Popup || !views.ContainsKey(type))

@@ -12,6 +12,10 @@ public class GameManager : MonoBehaviour
     [SerializeField] private bool persistAcrossScenes = true;
 
     public bool IsInitialized { get; private set; }
+    public PlayerProgressModel Progress { get; private set; }
+    public event System.Action ProgressChanged;
+
+    private SaveManager saveManager;
 
     public DataManager Data
     {
@@ -77,7 +81,17 @@ private void Awake()
         Formation = new PartyFormation();
         Formation.Load(dataManager.PartySlots.Values);
 
-        battleManager.Initialize(dataManager, Formation);
+        saveManager = new SaveManager();
+        Progress = saveManager.Load();
+
+        foreach (CharacterDefinition character in dataManager.Characters.Values)
+        {
+            Progress.AddCharacter(character.Id);
+        }
+
+        battleManager.Initialize(dataManager, Formation, Progress);
+        battleManager.SessionCompleted += HandleBattleEnd;
+        saveManager.Save(Progress);
         IsInitialized = true;
     }
 
@@ -93,10 +107,83 @@ private void Awake()
 
     private void Start()
     {
+        CreateGrowthUI();
+
         if (IsInitialized && battleManager.CurrentSession == null)
         {
             StartStage(StartingStageId);
         }
+    }
+
+    public bool TryLevelUp(string characterId)
+    {
+        if (!IsInitialized || string.IsNullOrWhiteSpace(characterId))
+        {
+            return false;
+        }
+
+        CharacterProgressModel character = Progress.GetCharacter(characterId);
+
+        if (character == null)
+        {
+            return false;
+        }
+
+        int cost = GameUtil.GetLevelCost(character.Level);
+
+        if (Progress.Gold < cost)
+        {
+            return false;
+        }
+
+        Progress.Gold -= cost;
+        character.Level++;
+        SaveProgress();
+        return true;
+    }
+
+    private void HandleBattleEnd(BattleSession session)
+    {
+        if (session == null || session.Outcome != BattleOutcome.Victory)
+        {
+            return;
+        }
+
+        RewardDefinition reward;
+
+        if (!dataManager.TryGetReward(session.Stage.RewardId, out reward))
+        {
+            Debug.LogError("전투 보상을 찾을 수 없습니다: " + session.Stage.RewardId);
+            return;
+        }
+
+        session.SetReward(reward.Gold);
+        Progress.Gold += reward.Gold;
+        Progress.LastClearedStageId = session.Stage.Id;
+        SaveProgress();
+    }
+
+    private void SaveProgress()
+    {
+        saveManager.Save(Progress);
+
+        if (ProgressChanged != null)
+        {
+            ProgressChanged();
+        }
+    }
+
+    private void CreateGrowthUI()
+    {
+        UIManager uiManager = FindFirstObjectByType<UIManager>();
+
+        if (uiManager == null)
+        {
+            Debug.LogError("성장 화면을 연결할 UIManager가 없습니다.");
+            return;
+        }
+
+        GrowthView.Create(uiManager, this);
     }
 
     private void Update()
@@ -109,6 +196,11 @@ private void Awake()
 
     private void OnDestroy()
     {
+        if (battleManager != null)
+        {
+            battleManager.SessionCompleted -= HandleBattleEnd;
+        }
+
         if (Instance == this)
         {
             Instance = null;
