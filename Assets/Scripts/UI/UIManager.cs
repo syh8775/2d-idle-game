@@ -1,9 +1,27 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections.Generic;
 
 public class UIManager : MonoBehaviour
 {
+    [Header("UI Theme")]
+    [SerializeField] private Font uiFont;
+    [SerializeField] private Sprite mainPanel;
+    [SerializeField] private Sprite headerPanel;
+    [SerializeField] private Sprite slotFrame;
+    [SerializeField] private Sprite leftPanel;
+    [SerializeField] private Sprite rightPanel;
+    [SerializeField] private string[] portraitIds = new string[0];
+    [SerializeField] private Sprite[] portraits = new Sprite[0];
+    [SerializeField] private Sprite[] fullBodies = new Sprite[0];
+
     private Dictionary<UIType, UIBase> views = new Dictionary<UIType, UIBase>();
+
+    public Font UIFont { get { return uiFont; } }
+    public Sprite MainPanel { get { return mainPanel; } }
+    public Sprite HeaderPanel { get { return headerPanel; } }
+    public Sprite SlotFrame { get { return slotFrame; } }
+    public Sprite LeftPanel { get { return leftPanel; } }
+    public Sprite RightPanel { get { return rightPanel; } }
 
     private void Awake()
     {
@@ -11,12 +29,7 @@ public class UIManager : MonoBehaviour
 
         foreach (UIBase view in foundViews)
         {
-            if (views.ContainsKey(view.Type))
-            {
-                Debug.LogError("같은 종류의 UI가 이미 존재합니다: " + view.Type);
-                continue;
-            }
-            views.Add(view.Type, view);
+            Register(view);
         }
     }
 
@@ -31,27 +44,27 @@ public class UIManager : MonoBehaviour
         return true;
     }
 
-    public bool Switch(UIType type)
+public bool Switch(UIType type)
     {
-        if (type == UIType.Popup || !views.ContainsKey(type))
+        if (!views.ContainsKey(type))
         {
             return false;
         }
 
-        foreach (KeyValuePair<UIType, UIBase> pair in views)
+        foreach (UIBase view in views.Values)
         {
-            if (pair.Key == UIType.Popup)
-            {
-                continue;
-            }
+            view.Hide();
+        }
 
-            if (pair.Key == type)
+        views[type].Show();
+
+        Transform tabs = transform.Find("PersistentBottomTabs");
+        if (tabs != null)
+        {
+            BottomTabs bottomTabs = tabs.GetComponent<BottomTabs>();
+            if (bottomTabs != null)
             {
-                pair.Value.Show();
-            }
-            else
-            {
-                pair.Value.Hide();
+                bottomTabs.SetActive(type);
             }
         }
 
@@ -60,25 +73,49 @@ public class UIManager : MonoBehaviour
 
     public bool Show(UIType type)
     {
-        UIBase view;
-
-        if (!views.TryGetValue(type, out view))
+        if (!views.ContainsKey(type))
         {
             return false;
         }
 
-        view.Show();
+        views[type].Show();
         return true;
     }
 
     public bool Hide(UIType type)
     {
-        UIBase view;
-        if (!views.TryGetValue(type, out view))
+        if (!views.ContainsKey(type))
         {
             return false;
         }
-        view.Hide();
+
+        views[type].Hide();
         return true;
+    }
+
+    public Sprite GetPortrait(string id)
+    {
+        for (int i = 0; i < portraitIds.Length && i < portraits.Length; i++)
+        {
+            if (portraitIds[i] == id)
+            {
+                return portraits[i];
+            }
+        }
+
+        return Resources.Load<Sprite>("UI/Formation/" + id + "-trimmed");
+    }
+
+    public Sprite GetBody(string id)
+    {
+        for (int i = 0; i < portraitIds.Length && i < fullBodies.Length; i++)
+        {
+            if (portraitIds[i] == id)
+            {
+                return fullBodies[i];
+            }
+        }
+
+        return Resources.Load<Sprite>("UI/Formation/" + id + "-trimmed");
     }
 }

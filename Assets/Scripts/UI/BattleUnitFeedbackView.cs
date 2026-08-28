@@ -94,18 +94,7 @@ public class BattleUnitFeedbackView
                 image.rectTransform.localScale);
         }
 
-        Sprite[] frames = GetFrames(unit);
-        Sprite originalSprite = image.sprite;
-
-        if (unit != null &&
-            unit.Side == BattleUnitSide.Ally &&
-            frames.Length > 0 &&
-            frames[0] != null)
-        {
-            originalSprite = frames[0];
-        }
-
-        originalCharacterSprites[image] = originalSprite;
+        originalCharacterSprites[image] = image.sprite;
 
         if (!originalCharacterPositions.ContainsKey(image.rectTransform))
         {

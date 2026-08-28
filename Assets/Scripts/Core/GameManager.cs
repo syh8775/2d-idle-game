@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 
 public class GameManager : MonoBehaviour
@@ -105,9 +105,9 @@ private void Awake()
         return battleManager.StartStage(stageId);
     }
 
-    private void Start()
+private void Start()
     {
-        CreateGrowthUI();
+        CreateMainUI();
 
         if (IsInitialized && battleManager.CurrentSession == null)
         {
@@ -173,17 +173,19 @@ private void Awake()
         }
     }
 
-    private void CreateGrowthUI()
+private void CreateMainUI()
     {
         UIManager uiManager = FindFirstObjectByType<UIManager>();
 
         if (uiManager == null)
         {
-            Debug.LogError("성장 화면을 연결할 UIManager가 없습니다.");
+            Debug.LogError("화면을 연결할 UIManager가 없습니다.");
             return;
         }
 
         GrowthView.Create(uiManager, this);
+        DungeonView.Create(uiManager);
+        DrawView.Create(uiManager);
     }
 
     private void Update()

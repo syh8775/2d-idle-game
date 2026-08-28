@@ -25,6 +25,11 @@ public class BattleResultView
 
     public void Initialize(Transform owner)
     {
+        UIManager uiManager = UnityEngine.Object.FindFirstObjectByType<UIManager>();
+        Font uiFont = uiManager != null && uiManager.UIFont != null
+            ? uiManager.UIFont
+            : Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+
         Transform panel = FindInHierarchy(
             owner.root,
             "BattleResultPanel_AutoOff_5s");
@@ -47,8 +52,7 @@ public class BattleResultView
                 typeof(Text));
             textObject.transform.SetParent(panel, false);
             resultText = textObject.GetComponent<Text>();
-            resultText.font = Resources.GetBuiltinResource<Font>(
-                "LegacyRuntime.ttf");
+            resultText.font = uiFont;
             resultText.fontSize = 72;
             resultText.alignment = TextAnchor.MiddleCenter;
             resultText.color = Color.white;
@@ -59,6 +63,8 @@ public class BattleResultView
             rect.offsetMin = Vector2.zero;
             rect.offsetMax = Vector2.zero;
         }
+        resultText.font = uiFont;
+
 
         retryButton = owner.Find("RetryButton")?.GetComponent<Button>();
 
@@ -92,8 +98,7 @@ public class BattleResultView
 
             Text buttonText = textObject.GetComponent<Text>();
             buttonText.text = "Retry";
-            buttonText.font = Resources.GetBuiltinResource<Font>(
-                "LegacyRuntime.ttf");
+            buttonText.font = uiFont;
             buttonText.fontSize = 28;
             buttonText.alignment = TextAnchor.MiddleCenter;
             buttonText.color = Color.white;
@@ -106,6 +111,12 @@ public class BattleResultView
 
             retryButton = buttonObject.GetComponent<Button>();
         }
+        Text retryText = retryButton.GetComponentInChildren<Text>(true);
+        if (retryText != null)
+        {
+            retryText.font = uiFont;
+        }
+
 
         ConfigureRetryButton();
         retryButton.onClick.AddListener(HandleRetryClicked);

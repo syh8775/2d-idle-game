@@ -44,10 +44,10 @@ public class BattleUnitsView : MonoBehaviour
 
         feedbackView = new BattleUnitFeedbackView(
             this,
-            allyAttackFrames,
-            char002AttackFrames,
-            char003Frames,
-            char004Frames,
+            new Sprite[0],
+            new Sprite[0],
+            new Sprite[0],
+            new Sprite[0],
             char001AttackFrameDuration,
             char002AttackFrameDuration,
             char003Duration,
@@ -319,6 +319,8 @@ public class BattleUnitsView : MonoBehaviour
             return false;
         }
 
+        SetHpBarLayout(slot);
+
         feedbackView.RegisterCharacter(image, unit);
         slot.gameObject.SetActive(true);
         character.gameObject.SetActive(true);
@@ -447,5 +449,49 @@ public class BattleUnitsView : MonoBehaviour
         }
 
         return string.Format("{0}{1:00}", prefix, formationSlot);
+    }
+
+
+private void SetHpBarLayout(Transform slot)
+    {
+        if (slot == null)
+        {
+            return;
+        }
+
+        Transform statusOverlay = slot.Find("StatusOverlay");
+        Transform hpBack = statusOverlay == null
+            ? slot.Find("HP_Back")
+            : statusOverlay.Find("HP_Back");
+        Transform hpFill = statusOverlay == null
+            ? slot.Find("HP_Fill")
+            : statusOverlay.Find("HP_Fill");
+
+        Vector2 barSize = new Vector2(104f, 15f);
+        Vector2 barPosition = new Vector2(0f, 90f);
+        RectTransform hpBackRect = hpBack == null
+            ? null
+            : hpBack.GetComponent<RectTransform>();
+        RectTransform hpFillRect = hpFill == null
+            ? null
+            : hpFill.GetComponent<RectTransform>();
+
+        if (hpBackRect != null)
+        {
+            hpBackRect.anchorMin = new Vector2(0.5f, 0.5f);
+            hpBackRect.anchorMax = new Vector2(0.5f, 0.5f);
+            hpBackRect.pivot = new Vector2(0.5f, 0.5f);
+            hpBackRect.anchoredPosition = barPosition;
+            hpBackRect.sizeDelta = barSize;
+        }
+
+        if (hpFillRect != null)
+        {
+            hpFillRect.anchorMin = new Vector2(0.5f, 0.5f);
+            hpFillRect.anchorMax = new Vector2(0.5f, 0.5f);
+            hpFillRect.pivot = new Vector2(0.5f, 0.5f);
+            hpFillRect.anchoredPosition = barPosition;
+            hpFillRect.sizeDelta = barSize;
+        }
     }
 }

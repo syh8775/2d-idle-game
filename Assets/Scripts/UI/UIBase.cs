@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 public class UIBase : MonoBehaviour
 {
@@ -12,9 +12,16 @@ public class UIBase : MonoBehaviour
         type = value;
     }
 
-    public virtual void Show()
+public virtual void Show()
     {
         gameObject.SetActive(true);
+        transform.SetAsLastSibling();
+
+        Transform bottomTabs = transform.parent.Find("PersistentBottomTabs");
+        if (bottomTabs != null)
+        {
+            bottomTabs.SetAsLastSibling();
+        }
     }
 
     public virtual void Hide()

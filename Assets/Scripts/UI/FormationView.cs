@@ -8,33 +8,95 @@ public class FormationView : MonoBehaviour
     private UIButton openButton;
     private UIButton applyButton;
     private Text message;
-    private Button[] slotButtons = new Button[4];
-    private Button[] memberButtons = new Button[4];
+    private Button[] slotButtons = new Button[9];
+    private Image[] slotImages = new Image[9];
+    private OwnedCharacterListView rosterList;
     private string selectedId = string.Empty;
 
-    private void Awake()
+private void Awake()
     {
         panel = transform.Find("Panel").gameObject;
+
+        UIFrame.Build(panel.transform, new Vector2(900f, 1500f), Vector2.zero);
+
+
         uiManager = GetComponentInParent<UIManager>();
+
+        Transform oldTitle = panel.transform.Find("Title");
+        if (oldTitle != null)
+        {
+            oldTitle.gameObject.SetActive(false);
+        }
+
+        Transform guide = panel.transform.Find("Guide");
+        if (guide != null)
+        {
+            guide.gameObject.SetActive(false);
+        }
+
+        UIFrame.MakeHeader(panel.transform, uiManager.UIFont, "편성", 645f);
+
+        panel.transform.SetParent(uiManager.transform, false);
+        panel.GetComponent<RectTransform>().anchoredPosition = new Vector2(0f, 60f);
         openButton = transform.Find("OpenButton").GetComponent<UIButton>();
-        applyButton = transform.Find("Panel/ApplyButton").GetComponent<UIButton>();
-        message = transform.Find("Panel/Message").GetComponent<Text>();
+
+        applyButton = panel.transform.Find("ApplyButton").GetComponent<UIButton>();
+        applyButton.GetComponentInChildren<Text>().text = "적용하고 재시작";
+        applyButton.GetComponent<RectTransform>().anchoredPosition = new Vector2(0f, -620f);
+        RectTransform memberRoot = panel.transform.Find("Members").GetComponent<RectTransform>();
+        memberRoot.anchoredPosition = new Vector2(0f, -270f);
+        memberRoot.sizeDelta = new Vector2(820f, 560f);
+
+        panel.transform.Find("Board").GetComponent<RectTransform>().anchoredPosition = new Vector2(0f, 270f);
+        message = panel.transform.Find("Message").GetComponent<Text>();
+
+        Image panelImage = panel.GetComponent<Image>();
+        if (panelImage == null)
+        {
+            panelImage = panel.AddComponent<Image>();
+            panelImage.color = Color.clear;
+        }
+        panelImage.raycastTarget = true;
+
+        UIFrame.MakeClose(panel.transform, uiManager.UIFont, new Vector2(390f, 645f), Close);
 
         openButton.Bind(Open);
         applyButton.Bind(Apply);
 
-        for (int i = 0; i < slotButtons.Length; i++)
+        Transform boardRoot = panel.transform.Find("Board");
+        Image sourceFrame = boardRoot.Find("Slot_01").GetComponent<Image>();
+        Sprite slotFrame = sourceFrame.overrideSprite != null ? sourceFrame.overrideSprite : sourceFrame.sprite;
+
+        foreach (Transform child in boardRoot)
         {
-            int slot = i + 1;
-            slotButtons[i] = transform.Find("Panel/Board/Slot_" + slot.ToString("00")).GetComponent<Button>();
-            slotButtons[i].onClick.AddListener(() => Move(slot));
+            child.gameObject.SetActive(false);
+            Destroy(child.gameObject);
         }
 
-        for (int i = 0; i < memberButtons.Length; i++)
+        GridLayoutGroup grid = boardRoot.GetComponent<GridLayoutGroup>();
+        if (grid == null)
         {
-            int index = i;
-            memberButtons[i] = transform.Find("Panel/Members/Member_" + (i + 1).ToString("00")).GetComponent<Button>();
-            memberButtons[i].onClick.AddListener(() => Pick(index));
+            grid = boardRoot.gameObject.AddComponent<GridLayoutGroup>();
+        }
+
+        grid.cellSize = new Vector2(140f, 140f);
+        grid.spacing = new Vector2(25f, 0f);
+        grid.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
+        grid.constraintCount = 3;
+        grid.startCorner = GridLayoutGroup.Corner.UpperLeft;
+        grid.startAxis = GridLayoutGroup.Axis.Horizontal;
+        grid.childAlignment = TextAnchor.MiddleCenter;
+
+        RectTransform boardRect = boardRoot.GetComponent<RectTransform>();
+        boardRect.sizeDelta = new Vector2(470f, 420f);
+
+        int[] layoutSlots = { 7, 4, 1, 8, 5, 2, 9, 6, 3 };
+        for (int i = 0; i < layoutSlots.Length; i++)
+        {
+            int slot = layoutSlots[i];
+            FormationSlotView slotView = FormationSlotView.Create(boardRoot, uiManager, slotFrame, slot, delegate { Move(slot); });
+            slotButtons[slot - 1] = slotView.Button;
+            slotImages[slot - 1] = slotView.Portrait;
         }
 
         panel.SetActive(false);
@@ -42,6 +104,14 @@ public class FormationView : MonoBehaviour
 
     private void Start()
     {
+        Transform memberRoot = panel.transform.Find("Members");
+        foreach (Transform child in memberRoot)
+        {
+            Destroy(child.gameObject);
+        }
+
+        rosterList = OwnedCharacterListView.Create(memberRoot, uiManager, GameManager.Instance, true, Select);
+        rosterList.transform.localScale = Vector3.one;
         Refresh();
     }
 
@@ -54,44 +124,59 @@ public class FormationView : MonoBehaviour
             return;
         }
 
-        SetMsg("Select a party member");
+        SetMsg("파티원을 선택하세요");
         Refresh();
     }
 
-    private void Pick(int index)
+private void Select(string id)
     {
-        PartyFormation formation = GameManager.Instance.Formation;
-
-        if (index < 0 || index >= formation.Members.Count)
-        {
-            return;
-        }
-
-        selectedId = formation.Members[index].CharacterId;
-        SetMsg(selectedId + " selected");
+        selectedId = id;
+        SetMsg(GetName(id) + " 선택됨");
         Refresh();
     }
 
     private void Move(int slot)
     {
+        PartyFormation formation = GameManager.Instance.Formation;
+        PartyMember placedMember = FindAt(slot);
+
+        if (placedMember != null)
+        {
+            formation.TryRemove(placedMember.CharacterId);
+            selectedId = string.Empty;
+            SetMsg(GetName(placedMember.CharacterId) + " 편성 해제");
+            Refresh();
+            return;
+        }
+
         if (string.IsNullOrEmpty(selectedId))
         {
-            SetMsg("Select a party member first");
+            SetMsg("먼저 파티원을 선택하세요");
             return;
         }
 
-        if (!GameManager.Instance.Formation.TryMove(selectedId, slot))
+        if (!formation.TryMove(selectedId, slot))
         {
-            SetMsg("That slot is already occupied");
+            SetMsg("해당 슬롯에 배치할 수 없습니다");
             return;
         }
 
-        SetMsg(selectedId + " moved to slot " + slot);
+        SetMsg(GetName(selectedId) + "을(를) 슬롯 " + slot + "에 배치했습니다");
+        selectedId = string.Empty;
         Refresh();
     }
 
     private void Apply()
     {
+        foreach (PartyMember member in GameManager.Instance.Formation.Members)
+        {
+            if (member.FormationSlot == 0)
+            {
+                SetMsg("모든 파티원을 먼저 배치하세요");
+                return;
+            }
+        }
+
         applyButton.Lock(true);
         BattleManager battle = GameManager.Instance.Battle;
 
@@ -104,49 +189,77 @@ public class FormationView : MonoBehaviour
         applyButton.Lock(false);
     }
 
-    private void Refresh()
+private void Refresh()
     {
         if (GameManager.Instance == null || GameManager.Instance.Formation == null)
         {
             return;
         }
 
-        PartyFormation formation = GameManager.Instance.Formation;
-
-        for (int i = 0; i < memberButtons.Length; i++)
+        if (rosterList != null)
         {
-            Text label = memberButtons[i].GetComponentInChildren<Text>();
-            Image image = memberButtons[i].GetComponent<Image>();
-
-            if (i >= formation.Members.Count)
-            {
-                memberButtons[i].gameObject.SetActive(false);
-                continue;
-            }
-
-            PartyMember member = formation.Members[i];
-            memberButtons[i].gameObject.SetActive(true);
-            label.text = member.CharacterId + "\nSlot " + member.FormationSlot;
-            image.color = member.CharacterId == selectedId
-                ? new Color(0.72f, 0.5f, 0.16f, 1f)
-                : new Color(0.12f, 0.22f, 0.34f, 1f);
+            rosterList.Refresh();
         }
 
         for (int slot = 1; slot <= slotButtons.Length; slot++)
         {
             PartyMember member = FindAt(slot);
             Text label = slotButtons[slot - 1].GetComponentInChildren<Text>();
-            Image image = slotButtons[slot - 1].GetComponent<Image>();
+            Image background = slotButtons[slot - 1].GetComponent<Image>();
+            Image portrait = slotImages[slot - 1];
 
-            label.text = member == null
-                ? slot.ToString()
-                : slot + "\n" + member.CharacterId;
-
-            image.color = member == null
-                ? new Color(0.08f, 0.12f, 0.18f, 0.88f)
-                : new Color(0.12f, 0.3f, 0.42f, 1f);
+            if (member == null)
+            {
+                background.color = new Color(0f, 0f, 0f, 0.08f);
+                portrait.sprite = null;
+                portrait.color = Color.clear;
+                portrait.rectTransform.anchoredPosition = Vector2.zero;
+                label.text = "슬롯 " + slot;
+            }
+            else
+            {
+                background.color = Color.clear;
+                portrait.sprite = GetSprite(member.CharacterId);
+                portrait.color = Color.white;
+                Center(portrait);
+                label.text = "슬롯 " + slot;
+            }
         }
     }
+
+private void Center(Image image)
+    {
+        RectTransform rect = image.rectTransform;
+        rect.anchorMin = new Vector2(0.5f, 0.5f);
+        rect.anchorMax = new Vector2(0.5f, 0.5f);
+        rect.pivot = new Vector2(0.5f, 0.5f);
+
+        if (image.sprite == null)
+        {
+            rect.anchoredPosition = Vector2.zero;
+            return;
+        }
+
+        float scale = 118f / image.sprite.rect.height;
+        float displayScale = 1f;
+        float yOffset = 0f;
+
+        if (image.sprite.name == "CHAR_002-trimmed")
+        {
+            displayScale = 1493f / 1324f;
+            yOffset = 9.047811f;
+        }
+
+        rect.sizeDelta = image.sprite.rect.size * scale * displayScale;
+        rect.anchoredPosition = new Vector2(0f, yOffset);
+    }
+
+private Sprite GetSprite(string id)
+    {
+        Sprite sprite = Resources.Load<Sprite>("UI/Formation/" + id + "-trimmed");
+        return sprite != null ? sprite : uiManager.GetPortrait(id);
+    }
+
 
     private PartyMember FindAt(int slot)
     {
@@ -164,5 +277,23 @@ public class FormationView : MonoBehaviour
     private void SetMsg(string value)
     {
         message.text = value;
+    }
+
+
+    private void Close()
+    {
+        uiManager.Switch(UIType.Battle);
+    }
+
+
+private string GetName(string id)
+    {
+        CharacterDefinition definition;
+        if (GameManager.Instance != null && GameManager.Instance.Data.TryGetCharacter(id, out definition))
+        {
+            return definition.DisplayName;
+        }
+
+        return id;
     }
 }

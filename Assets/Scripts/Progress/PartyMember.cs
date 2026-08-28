@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 [Serializable]
@@ -14,7 +14,7 @@ public class PartyMember
 public class PartyFormation
 {
     private const int MinimumSlot = 1;
-    private const int MaximumSlot = 4;
+    private const int MaximumSlot = 9;
 
     public List<PartyMember> Members = new List<PartyMember>();
 
@@ -38,6 +38,28 @@ public class PartyFormation
 
             Members.Add(member);
         }
+    }
+
+    public bool TryRemove(string characterId)
+    {
+        foreach (PartyMember member in Members)
+        {
+            if (member.CharacterId != characterId || member.FormationSlot == 0)
+            {
+                continue;
+            }
+
+            member.FormationSlot = 0;
+
+            if (Changed != null)
+            {
+                Changed();
+            }
+
+            return true;
+        }
+
+        return false;
     }
 
     public bool TryMove(string characterId, int targetSlot)
