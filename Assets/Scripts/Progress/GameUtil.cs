@@ -24,4 +24,11 @@ public static class GameUtil
 
         return baseStat + baseStat * (level - 1) / 10;
     }
+
+    public static string GetStars(string rarity)
+    {
+        if (rarity == "SSR") return "★★★";
+        if (rarity == "SR") return "★★";
+        return "★";
+    }
 }

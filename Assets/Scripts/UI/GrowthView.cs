@@ -184,7 +184,7 @@ private void Refresh()
         ApplySkillIcon(specialSkillIcon, "special");
 
         nameText.text = definition.DisplayName;
-        rarityText.text = GetStars(definition.Rarity);
+        rarityText.text = GameUtil.GetStars(definition.Rarity);
         roleText.text = definition.Role;
         levelText.text = "Lv. " + progress.Level + " / 50";
         levelFill.rectTransform.sizeDelta = new Vector2(220f * Mathf.Clamp01(progress.Level / 50f), 10f);
@@ -301,18 +301,4 @@ private void ApplySkillIcon(Image target, string skillType)
     }
 
 
-    private string GetStars(string rarity)
-    {
-        if (rarity == "SSR")
-        {
-            return "★★★";
-        }
-
-        if (rarity == "SR")
-        {
-            return "★★";
-        }
-
-        return "★";
-    }
 }

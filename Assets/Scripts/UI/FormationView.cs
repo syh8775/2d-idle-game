@@ -252,12 +252,10 @@ private void Center(Image image, string characterId)
 
         float scale = 118f / image.sprite.rect.height;
         float displayScale = 1f;
-        float yOffset = 0f;
 
         if (image.sprite.name == "CHAR_002-trimmed")
         {
             displayScale = 1493f / 1324f;
-            yOffset = 9.047811f;
         }
 
         float enlargement = characterId == "CHAR_002" || characterId == "CHAR_003" || characterId == "CHAR_009" ? 1.5f : 1.3f;

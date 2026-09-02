@@ -539,6 +539,7 @@ private void CreateMainUI()
         DungeonView.Create(uiManager);
         DrawView.Create(uiManager);
         OfflineRewardView.Create(uiManager, this);
+        PauseMenuView.Create(uiManager);
     }
 
     private void ResetProgress()

@@ -95,7 +95,7 @@ public class OwnedCharacterListView : MonoBehaviour
             portrait.raycastTarget = false;
 
             MakeText(button.transform, character.DisplayName.Split(' ')[0], new Vector2(0f, -60f), new Vector2(120f, 30f), 17, Color.white, TextAnchor.MiddleCenter);
-            MakeText(button.transform, GetStars(character.Rarity), new Vector2(0f, -87f), new Vector2(105f, 26f), 16, new Color(1f, 0.72f, 0.18f), TextAnchor.MiddleCenter);
+            MakeText(button.transform, GameUtil.GetStars(character.Rarity), new Vector2(0f, -87f), new Vector2(105f, 26f), 16, new Color(1f, 0.72f, 0.18f), TextAnchor.MiddleCenter);
 
             if (selectable)
             {
@@ -207,21 +207,6 @@ public class OwnedCharacterListView : MonoBehaviour
         image.type = Image.Type.Sliced;
         image.color = new Color(0.04f, 0.18f, 0.25f, 1f);
         return buttonObject.GetComponent<Button>();
-    }
-
-    private string GetStars(string rarity)
-    {
-        if (rarity == "SSR")
-        {
-            return "★★★";
-        }
-
-        if (rarity == "SR")
-        {
-            return "★★";
-        }
-
-        return "★";
     }
 
     private void OnDestroy()
