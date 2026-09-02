@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 [Serializable]
@@ -6,6 +6,15 @@ public class PlayerProgressModel
 {
     public int Gold;
     public string LastClearedStageId = string.Empty;
+    public string CurrentStageId = string.Empty;
+    public List<PartyMember> PartyMembers = new List<PartyMember>();
+    public long LastActiveUtcTicks;
+    public int PendingOfflineGold;
+
+    public int TotalEnemyKills;
+    public int TotalGoldEarned;
+    public int HighestDamage;
+public int PendingOfflineSeconds;
     public List<CharacterProgressModel> Characters = new List<CharacterProgressModel>();
 
     public CharacterProgressModel GetCharacter(string characterId)
