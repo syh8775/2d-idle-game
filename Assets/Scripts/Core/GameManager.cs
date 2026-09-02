@@ -469,6 +469,18 @@ public int ClaimOffline()
         if (!string.IsNullOrEmpty(Progress.CurrentStageId) &&
             dataManager.TryGetStage(Progress.CurrentStageId, out stage))
         {
+            if (Progress.CurrentStageId == Progress.LastClearedStageId &&
+                Progress.CurrentStageId.StartsWith("STAGE_") &&
+                int.TryParse(Progress.CurrentStageId.Substring(6), out int clearedStageNumber))
+            {
+                string nextStageId = "STAGE_" + (clearedStageNumber + 1).ToString("000");
+                StageDefinition nextStage;
+                if (dataManager.TryGetStage(nextStageId, out nextStage))
+                {
+                    return nextStageId;
+                }
+            }
+
             return Progress.CurrentStageId;
         }
 

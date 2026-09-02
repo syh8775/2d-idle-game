@@ -101,7 +101,18 @@ if (progress.PendingOfflineSeconds < 0)
         try
         {
             string json = JsonUtility.ToJson(progress, true);
-            File.WriteAllText(savePath, json);
+            string temporaryPath = savePath + ".tmp";
+            File.WriteAllText(temporaryPath, json);
+
+            if (File.Exists(savePath))
+            {
+                File.Replace(temporaryPath, savePath, null);
+            }
+            else
+            {
+                File.Move(temporaryPath, savePath);
+            }
+
             return true;
         }
         catch (Exception exception)

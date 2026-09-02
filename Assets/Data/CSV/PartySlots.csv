@@ -1,5 +1,5 @@
-id,slotIndex,side,defaultCharacterId,formationSlot,row,column,status
-PARTY_SLOT_01,1,Ally,CHAR_001,2,1,2,ACTIVE_PROTOTYPE
-PARTY_SLOT_02,2,Ally,CHAR_002,1,1,1,ACTIVE_PROTOTYPE
-PARTY_SLOT_03,3,Ally,CHAR_003,3,1,3,ACTIVE_PROTOTYPE
-PARTY_SLOT_04,4,Ally,CHAR_004,4,2,1,ACTIVE_PROTOTYPE
+id,slotIndex,side,defaultCharacterId,formationSlot,row,column
+PARTY_SLOT_01,1,Ally,CHAR_001,2,1,2
+PARTY_SLOT_02,2,Ally,CHAR_002,1,1,1
+PARTY_SLOT_03,3,Ally,CHAR_003,3,1,3
+PARTY_SLOT_04,4,Ally,CHAR_004,4,2,1

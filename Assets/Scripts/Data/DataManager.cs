@@ -152,9 +152,7 @@ public class DataManager : MonoBehaviour
                 Attack = Integer(row, "attack"),
                 Defense = Integer(row, "defense"),
                 Speed = Integer(row, "speed"),
-                NormalSkillId = Required(row, "normalSkillId"),
-                SpecialSkillId = Required(row, "specialSkillId"),
-                Status = Required(row, "status")
+                SpecialSkillId = Required(row, "specialSkillId")
             };
 
             if (characters.ContainsKey(definition.Id))
@@ -179,11 +177,9 @@ public class DataManager : MonoBehaviour
                 SkillType = Required(row, "skillType"),
                 EffectType = Required(row, "effectType"),
                 DisplayName = Required(row, "displayName"),
-                ManaCost = Integer(row, "manaCost"),
                 CooldownSeconds = Decimal(row, "cooldownSeconds"),
                 EffectMultiplier = Decimal(row, "effectMultiplier"),
-                IconAssetPath = Optional(row, "iconAssetPath"),
-                Status = Required(row, "status")
+                IconAssetPath = Optional(row, "iconAssetPath")
             };
 
             if (skills.ContainsKey(definition.Id))
@@ -209,8 +205,7 @@ public class DataManager : MonoBehaviour
                 HitPoints = Integer(row, "hp"),
                 Attack = Integer(row, "attack"),
                 Defense = Integer(row, "defense"),
-                Speed = Integer(row, "speed"),
-                Status = Required(row, "status")
+                Speed = Integer(row, "speed")
             };
 
             if (enemies.ContainsKey(definition.Id))
@@ -234,11 +229,9 @@ public class DataManager : MonoBehaviour
                 DisplayName = Required(row, "displayName"),
                 ChapterId = Required(row, "chapterId"),
                 FormationId = Required(row, "formationId"),
-                WaveCount = Integer(row, "waveCount"),
                 TimeLimitSeconds = Decimal(row, "timeLimitSeconds"),
                 RewardId = Required(row, "rewardId"),
-                PartySize = Integer(row, "partySize"),
-                Status = Required(row, "status")
+                PartySize = Integer(row, "partySize")
             };
 
             if (stages.ContainsKey(definition.Id))
@@ -260,8 +253,7 @@ public class DataManager : MonoBehaviour
             {
                 Id = Required(row, "id"),
                 StageId = Required(row, "stageId"),
-                Gold = Integer(row, "gold"),
-                Status = Required(row, "status")
+                Gold = Integer(row, "gold")
             };
 
             if (rewards.ContainsKey(definition.Id))
@@ -284,8 +276,7 @@ public class DataManager : MonoBehaviour
                 Id = Required(row, "id"),
                 Side = Required(row, "side"),
                 DefaultCharacterId = Required(row, "defaultCharacterId"),
-                FormationSlot = Integer(row, "formationSlot"),
-                Status = Required(row, "status")
+                FormationSlot = Integer(row, "formationSlot")
             };
 
             if (partySlots.ContainsKey(definition.Id))
@@ -310,9 +301,7 @@ public class DataManager : MonoBehaviour
                 FormationSlot = Integer(row, "formationSlot"),
                 EnemyId = Required(row, "enemyId"),
                 Row = Integer(row, "row"),
-                Column = Integer(row, "column"),
-                SpawnDelaySeconds = Decimal(row, "spawnDelaySeconds"),
-                Status = Required(row, "status")
+                Column = Integer(row, "column")
             };
 
             enemyFormationSlots.Add(definition);

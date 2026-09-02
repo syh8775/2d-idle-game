@@ -16,7 +16,11 @@ public static class DataValidator
     {
         foreach (CharacterDefinition character in dataManager.Characters.Values)
         {
-            CheckCharSkill(dataManager, character, character.NormalSkillId);
+            if (character.HitPoints <= 0 || character.Attack < 0 || character.Defense < 0 || character.Speed <= 0)
+            {
+                throw new FormatException("캐릭터 능력치 범위가 올바르지 않습니다: " + character.Id);
+            }
+
             CheckCharSkill(dataManager, character, character.SpecialSkillId);
         }
     }
@@ -40,6 +44,11 @@ public static class DataValidator
     {
         foreach (SkillDefinition skill in dataManager.Skills.Values)
         {
+            if (skill.CooldownSeconds < 0f || skill.EffectMultiplier < 0f)
+            {
+                throw new FormatException("스킬 수치 범위가 올바르지 않습니다: " + skill.Id);
+            }
+
             CharacterDefinition character;
 
             if (!dataManager.TryGetCharacter(skill.CharacterId, out character))
@@ -53,6 +62,11 @@ public static class DataValidator
     {
         foreach(StageDefinition stage in dataManager.Stages.Values)
         {
+            if (stage.TimeLimitSeconds <= 0f || stage.PartySize < 1 || stage.PartySize > 9)
+            {
+                throw new FormatException("스테이지 수치 범위가 올바르지 않습니다: " + stage.Id);
+            }
+
             RewardDefinition reward;
 
             if (!dataManager.TryGetReward(stage.RewardId, out reward))
@@ -73,6 +87,11 @@ public static class DataValidator
     {
         foreach (RewardDefinition reward in dataManager.Rewards.Values)
         {
+            if (reward.Gold < 0)
+            {
+                throw new FormatException("보상 금액이 음수입니다: " + reward.Id);
+            }
+
             StageDefinition stage;
 
             if (!dataManager.TryGetStage(reward.StageId, out stage))
@@ -108,6 +127,11 @@ public static class DataValidator
     {
         foreach (PartySlotDefinition partySlot in dataManager.PartySlots.Values)
         {
+            if (partySlot.FormationSlot < 1 || partySlot.FormationSlot > 9)
+            {
+                throw new FormatException("파티 슬롯 범위가 올바르지 않습니다: " + partySlot.Id);
+            }
+
             CharacterDefinition character;
 
             if (!dataManager.TryGetCharacter(partySlot.DefaultCharacterId, out character))
@@ -121,6 +145,11 @@ public static class DataValidator
     {
         foreach (EnemyFormationSlotDefinition formation in dataManager.EnemyFormationSlots)
         {
+            if (formation.FormationSlot < 1 || formation.FormationSlot > 9)
+            {
+                throw new FormatException("적 편성 수치 범위가 올바르지 않습니다: " + formation.FormationId);
+            }
+
             StageDefinition stage;
             EnemyDefinition enemy;
 
