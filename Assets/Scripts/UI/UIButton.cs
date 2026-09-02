@@ -29,12 +29,6 @@ public class UIButton : MonoBehaviour
         }
     }
 
-    public void Lock(bool value)
-    {
-        LoadButton();
-        button.interactable = !value;
-    }
-
     private void LoadButton()
     {
         if (button == null)

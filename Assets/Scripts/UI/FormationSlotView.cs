@@ -36,6 +36,12 @@ public class FormationSlotView : MonoBehaviour
         view.Portrait = portraitObject.GetComponent<Image>();
         view.Portrait.preserveAspect = true;
         view.Portrait.raycastTarget = false;
+        // 인접 칸을 포함한 모든 프레임보다 캐릭터를 앞에 그립니다.
+        Canvas parentCanvas = parent.GetComponentInParent<Canvas>();
+        Canvas portraitCanvas = portraitObject.AddComponent<Canvas>();
+        portraitCanvas.overrideSorting = true;
+        portraitCanvas.sortingLayerID = parentCanvas != null ? parentCanvas.sortingLayerID : 0;
+        portraitCanvas.sortingOrder = (parentCanvas != null ? parentCanvas.sortingOrder : 0) + 1 + (slot - 1) % 3 * 2;
 
         GameObject labelObject = new GameObject("Label", typeof(RectTransform), typeof(CanvasRenderer), typeof(Text));
         labelObject.transform.SetParent(slotObject.transform, false);
@@ -53,6 +59,10 @@ public class FormationSlotView : MonoBehaviour
         view.Label.alignment = TextAnchor.MiddleCenter;
         view.Label.color = Color.white;
         view.Label.raycastTarget = false;
+        Canvas labelCanvas = labelObject.AddComponent<Canvas>();
+        labelCanvas.overrideSorting = true;
+        labelCanvas.sortingLayerID = portraitCanvas.sortingLayerID;
+        labelCanvas.sortingOrder = portraitCanvas.sortingOrder + 1;
 
         Outline outline = labelObject.AddComponent<Outline>();
         outline.effectColor = new Color(0f, 0f, 0f, 0.9f);

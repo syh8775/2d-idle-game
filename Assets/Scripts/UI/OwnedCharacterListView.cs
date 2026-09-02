@@ -79,14 +79,22 @@ public class OwnedCharacterListView : MonoBehaviour
             RectTransform maskRect = maskObject.GetComponent<RectTransform>();
             maskRect.anchoredPosition = new Vector2(0f, 28f);
             maskRect.sizeDelta = new Vector2(115f, 115f);
+            // 머리 위 여백은 유지하고, 무기가 걸리는 가장자리만 얼굴 영역에서 제외합니다.
+            maskObject.GetComponent<RectMask2D>().padding = new Vector4(id == "CHAR_008" ? 14f : 0f, id == "CHAR_007" ? 10f : 0f, id == "CHAR_007" ? 12f : 0f, -24f);
+            Canvas parentCanvas = button.GetComponentInParent<Canvas>();
+            Canvas portraitCanvas = maskObject.AddComponent<Canvas>();
+            portraitCanvas.overrideSorting = true;
+            portraitCanvas.sortingLayerID = parentCanvas != null ? parentCanvas.sortingLayerID : 0;
+            portraitCanvas.sortingOrder = parentCanvas != null ? parentCanvas.sortingOrder + 1 : 1;
 
             float faceY = index < faceYs.Length ? faceYs[index] : -87f;
             float faceX = index < faceXs.Length ? faceXs[index] : 0f;
             Vector2 portraitSize = index == 8 ? new Vector2(300f, 400f) : new Vector2(250f, 333f);
             Image portrait = MakeImage(maskObject.transform, "Portrait", new Vector2(faceX, faceY), portraitSize, uiManager.GetPortrait(id));
             portrait.preserveAspect = true;
+            portrait.raycastTarget = false;
 
-            MakeText(button.transform, "Lv.", new Vector2(0f, -60f), new Vector2(120f, 30f), 17, Color.white, TextAnchor.MiddleCenter);
+            MakeText(button.transform, character.DisplayName.Split(' ')[0], new Vector2(0f, -60f), new Vector2(120f, 30f), 17, Color.white, TextAnchor.MiddleCenter);
             MakeText(button.transform, GetStars(character.Rarity), new Vector2(0f, -87f), new Vector2(105f, 26f), 16, new Color(1f, 0.72f, 0.18f), TextAnchor.MiddleCenter);
 
             if (selectable)
@@ -136,6 +144,11 @@ public class OwnedCharacterListView : MonoBehaviour
                 labels[1].text = "Lv." + progress.Level;
             }
 
+            Canvas parentCanvas = GetComponentInParent<Canvas>(true);
+            Canvas portraitCanvas = memberImages[i].transform.parent.GetComponent<Canvas>();
+            portraitCanvas.overrideSorting = true;
+            portraitCanvas.sortingLayerID = parentCanvas != null ? parentCanvas.sortingLayerID : 0;
+            portraitCanvas.sortingOrder = parentCanvas != null ? parentCanvas.sortingOrder + 1 : 1;
             memberImages[i].sprite = uiManager.GetPortrait(characterIds[i]);
         }
     }

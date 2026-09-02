@@ -1,15 +1,12 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections.Generic;
 
 public class UIManager : MonoBehaviour
 {
     [Header("UI Theme")]
     [SerializeField] private Font uiFont;
-    [SerializeField] private Sprite mainPanel;
     [SerializeField] private Sprite headerPanel;
     [SerializeField] private Sprite slotFrame;
-    [SerializeField] private Sprite leftPanel;
-    [SerializeField] private Sprite rightPanel;
     [SerializeField] private string[] portraitIds = new string[0];
     [SerializeField] private Sprite[] portraits = new Sprite[0];
     [SerializeField] private Sprite[] fullBodies = new Sprite[0];
@@ -17,11 +14,8 @@ public class UIManager : MonoBehaviour
     private Dictionary<UIType, UIBase> views = new Dictionary<UIType, UIBase>();
 
     public Font UIFont { get { return uiFont; } }
-    public Sprite MainPanel { get { return mainPanel; } }
     public Sprite HeaderPanel { get { return headerPanel; } }
     public Sprite SlotFrame { get { return slotFrame; } }
-    public Sprite LeftPanel { get { return leftPanel; } }
-    public Sprite RightPanel { get { return rightPanel; } }
 
     private void Awake()
     {
@@ -68,28 +62,6 @@ public bool Switch(UIType type)
             }
         }
 
-        return true;
-    }
-
-    public bool Show(UIType type)
-    {
-        if (!views.ContainsKey(type))
-        {
-            return false;
-        }
-
-        views[type].Show();
-        return true;
-    }
-
-    public bool Hide(UIType type)
-    {
-        if (!views.ContainsKey(type))
-        {
-            return false;
-        }
-
-        views[type].Hide();
         return true;
     }
 

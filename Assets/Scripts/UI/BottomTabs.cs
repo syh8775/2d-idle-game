@@ -18,12 +18,6 @@ private void Awake()
 
 private void Start()
     {
-        Transform growthButton = uiManager.transform.Find("GrowthButton");
-        if (growthButton != null)
-        {
-            growthButton.gameObject.SetActive(false);
-        }
-
         SetActive(UIType.Battle);
     }
 

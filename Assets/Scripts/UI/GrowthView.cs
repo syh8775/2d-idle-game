@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -16,15 +15,13 @@ public class GrowthView : UIBase
     private Text atkText;
     private Text defText;
     private Text spdText;
-    private Text skillText;
-    private Text specialSkillText;
     private Text costText;
     private Image bodyImage;
     private Image sdImage;
+    private Image normalSkillIcon;
+    private Image specialSkillIcon;
     private Image levelFill;
     private Button growButton;
-    private Button openButton;
-    private bool returnToPopup;
     private string selectedId = string.Empty;
     private OwnedCharacterListView rosterList;
 
@@ -98,13 +95,17 @@ public class GrowthView : UIBase
         Image normalSkill = MakePanel(transform, "NormalSkill", new Vector2(-325f, -80f), new Vector2(150f, 150f), null);
         normalSkill.color = Color.clear;
         UIFrame.Build(normalSkill.transform, new Vector2(150f, 150f), Vector2.zero);
-        MakeText(normalSkill.transform, "기본", new Vector2(0f, 38f), new Vector2(120f, 32f), 20, new Color(0.25f, 0.9f, 0.96f), TextAnchor.MiddleCenter);
-        skillText = MakeText(normalSkill.transform, string.Empty, new Vector2(0f, -24f), new Vector2(120f, 60f), 15, Color.white, TextAnchor.MiddleCenter);
+        normalSkillIcon = MakeImage(normalSkill.transform, "SkillIcon", Vector2.zero, new Vector2(150f, 150f), null);
+        normalSkillIcon.preserveAspect = true;
+        normalSkillIcon.raycastTarget = false;
+        MakeText(normalSkill.transform, "기본기", new Vector2(0f, 38f), new Vector2(120f, 32f), 20, new Color(0.25f, 0.9f, 0.96f), TextAnchor.MiddleCenter);
         Image specialSkill = MakePanel(transform, "SpecialSkill", new Vector2(-165f, -80f), new Vector2(150f, 150f), null);
         specialSkill.color = Color.clear;
         UIFrame.Build(specialSkill.transform, new Vector2(150f, 150f), Vector2.zero);
-        MakeText(specialSkill.transform, "특수", new Vector2(0f, 38f), new Vector2(120f, 32f), 20, new Color(1f, 0.72f, 0.2f), TextAnchor.MiddleCenter);
-        specialSkillText = MakeText(specialSkill.transform, string.Empty, new Vector2(0f, -24f), new Vector2(120f, 60f), 15, Color.white, TextAnchor.MiddleCenter);
+        specialSkillIcon = MakeImage(specialSkill.transform, "SkillIcon", Vector2.zero, new Vector2(150f, 150f), null);
+        specialSkillIcon.preserveAspect = true;
+        specialSkillIcon.raycastTarget = false;
+        MakeText(specialSkill.transform, "궁극기", new Vector2(0f, 38f), new Vector2(120f, 32f), 20, new Color(1f, 0.72f, 0.2f), TextAnchor.MiddleCenter);
 
 
         growButton = MakeButton(transform, "성장", new Vector2(-245f, 40f), new Vector2(300f, 100f));
@@ -140,19 +141,6 @@ public class GrowthView : UIBase
         return MakeText(row.transform, string.Empty, new Vector2(75f, 0f), new Vector2(50f, 38f), 20, Color.white, TextAnchor.MiddleRight);
     }
 
-
-    private void Open()
-    {
-        returnToPopup = gameManager.Battle.CurrentSession != null && gameManager.Battle.CurrentSession.IsFinished;
-        uiManager.Hide(UIType.Popup);
-
-        if (uiManager.Switch(UIType.Growth))
-        {
-            openButton.gameObject.SetActive(false);
-            Refresh();
-        }
-    }
-
     private void Close()
     {
         uiManager.Switch(UIType.Battle);
@@ -173,7 +161,7 @@ public class GrowthView : UIBase
         }
     }
 
-    private void Refresh()
+private void Refresh()
     {
         CharacterDefinition definition;
         CharacterProgressModel progress = gameManager.Progress.GetCharacter(selectedId);
@@ -187,11 +175,14 @@ public class GrowthView : UIBase
         int hp = GameUtil.GetLevelStat(definition.HitPoints, progress.Level);
         int attack = GameUtil.GetLevelStat(definition.Attack, progress.Level);
         int defense = GameUtil.GetLevelStat(definition.Defense, progress.Level);
-        int speed = GameUtil.GetLevelStat(definition.Speed, progress.Level);
+        int speed = definition.Speed;
 
         goldText.text = "GOLD  " + gameManager.Progress.Gold;
         bodyImage.sprite = uiManager.GetBody(selectedId);
         sdImage.sprite = uiManager.GetPortrait(selectedId);
+        ApplySkillIcon(normalSkillIcon, "normal");
+        ApplySkillIcon(specialSkillIcon, "special");
+
         nameText.text = definition.DisplayName;
         rarityText.text = GetStars(definition.Rarity);
         roleText.text = definition.Role;
@@ -201,8 +192,6 @@ public class GrowthView : UIBase
         atkText.text = attack.ToString();
         defText.text = defense.ToString();
         spdText.text = speed.ToString();
-        skillText.text = definition.NormalSkillId.Replace("SKILL_CHAR_", string.Empty);
-        specialSkillText.text = definition.SpecialSkillId.Replace("SKILL_CHAR_", string.Empty);
         costText.text = "●  " + cost + " GOLD";
         growButton.interactable = gameManager.Progress.Gold >= cost;
 
@@ -211,6 +200,47 @@ public class GrowthView : UIBase
             rosterList.SetSelected(selectedId);
         }
     }
+
+private Sprite GetSkillIcon(string skillType)
+    {
+        if (string.IsNullOrEmpty(selectedId) ||
+            !selectedId.StartsWith("CHAR_") ||
+            selectedId.Length != 8 ||
+            (skillType != "normal" && skillType != "special"))
+        {
+            return null;
+        }
+
+        int characterNumber;
+        if (!int.TryParse(selectedId.Substring(5), out characterNumber) ||
+            characterNumber < 1 ||
+            characterNumber > 9)
+        {
+            return null;
+        }
+
+        return Resources.Load<Sprite>(
+            "UI/SkillIcons/skill-char-" +
+            characterNumber.ToString("000") +
+            "-" +
+            skillType);
+    }
+
+private void ApplySkillIcon(Image target, string skillType)
+    {
+        if (target == null)
+        {
+            return;
+        }
+
+        Sprite icon = GetSkillIcon(skillType);
+        target.sprite = icon;
+        target.color = icon == null
+            ? new Color(0.02f, 0.055f, 0.095f, 0.98f)
+            : Color.white;
+    }
+
+
 
     private Text MakeText(Transform parent, string value, Vector2 position, Vector2 size, int fontSize, Color color, TextAnchor align)
     {

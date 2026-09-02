@@ -1,10 +1,9 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 [Serializable]
 public class PartyMember
 {
-    public int SlotIndex;
     public string CharacterId;
     public int FormationSlot;
 
@@ -18,8 +17,6 @@ public class PartyFormation
 
     public List<PartyMember> Members = new List<PartyMember>();
 
-    public event Action Changed;
-
     public void Load(IEnumerable<PartySlotDefinition> slots)
     {
         Members.Clear();
@@ -32,7 +29,6 @@ public class PartyFormation
             }
 
             PartyMember member = new PartyMember();
-            member.SlotIndex = slot.SlotIndex;
             member.CharacterId = slot.DefaultCharacterId;
             member.FormationSlot = slot.FormationSlot;
 
@@ -51,11 +47,6 @@ public class PartyFormation
 
             member.FormationSlot = 0;
 
-            if (Changed != null)
-            {
-                Changed();
-            }
-
             return true;
         }
 
@@ -70,30 +61,37 @@ public class PartyFormation
         }
 
         PartyMember movingMember = null;
+        PartyMember emptyMember = null;
 
         foreach (PartyMember member in Members)
         {
+            if (member.FormationSlot == targetSlot)
+            {
+                return false;
+            }
+
             if (member.CharacterId == characterId)
             {
                 movingMember = member;
             }
-            else if (member.FormationSlot == targetSlot)
+            else if (member.FormationSlot == 0 && emptyMember == null)
             {
-                return false;
+                emptyMember = member;
             }
         }
 
         if (movingMember == null)
         {
-            return false;
+            if (emptyMember == null)
+            {
+                return false;
+            }
+
+            emptyMember.CharacterId = characterId;
+            movingMember = emptyMember;
         }
 
         movingMember.FormationSlot = targetSlot;
-
-        if (Changed != null)
-        {
-            Changed();
-        }
 
         return true;
     }

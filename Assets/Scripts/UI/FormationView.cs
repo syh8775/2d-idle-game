@@ -69,7 +69,6 @@ private void Awake()
 
         foreach (Transform child in boardRoot)
         {
-            child.gameObject.SetActive(false);
             Destroy(child.gameObject);
         }
 
@@ -177,16 +176,16 @@ private void Select(string id)
             }
         }
 
-        applyButton.Lock(true);
+        GameManager.Instance.SaveFormation();
+
         BattleManager battle = GameManager.Instance.Battle;
 
         if (battle != null)
         {
-            battle.RestartCurrentStage();
+            battle.RestartStage();
         }
 
         uiManager.Switch(UIType.Battle);
-        applyButton.Lock(false);
     }
 
 private void Refresh()
@@ -207,6 +206,17 @@ private void Refresh()
             Text label = slotButtons[slot - 1].GetComponentInChildren<Text>();
             Image background = slotButtons[slot - 1].GetComponent<Image>();
             Image portrait = slotImages[slot - 1];
+            // 패널이 처음 활성화될 때 초기화되는 Canvas 정렬을 다시 적용합니다.
+            Canvas parentCanvas = panel.GetComponentInParent<Canvas>(true);
+            Canvas portraitCanvas = portrait.GetComponent<Canvas>();
+            portraitCanvas.overrideSorting = true;
+            portraitCanvas.sortingLayerID = parentCanvas.sortingLayerID;
+            // 아래쪽 칸의 캐릭터가 위쪽 칸보다 앞에 보이도록 행별로 정렬합니다.
+            portraitCanvas.sortingOrder = parentCanvas.sortingOrder + 1 + (slot - 1) % 3 * 2;
+            Canvas labelCanvas = label.GetComponent<Canvas>();
+            labelCanvas.overrideSorting = true;
+            labelCanvas.sortingLayerID = parentCanvas.sortingLayerID;
+            labelCanvas.sortingOrder = portraitCanvas.sortingOrder + 1;
 
             if (member == null)
             {
@@ -221,13 +231,13 @@ private void Refresh()
                 background.color = Color.clear;
                 portrait.sprite = GetSprite(member.CharacterId);
                 portrait.color = Color.white;
-                Center(portrait);
+                Center(portrait, member.CharacterId);
                 label.text = "슬롯 " + slot;
             }
         }
     }
 
-private void Center(Image image)
+private void Center(Image image, string characterId)
     {
         RectTransform rect = image.rectTransform;
         rect.anchorMin = new Vector2(0.5f, 0.5f);
@@ -250,8 +260,10 @@ private void Center(Image image)
             yOffset = 9.047811f;
         }
 
-        rect.sizeDelta = image.sprite.rect.size * scale * displayScale;
-        rect.anchoredPosition = new Vector2(0f, yOffset);
+        float enlargement = characterId == "CHAR_002" || characterId == "CHAR_003" || characterId == "CHAR_009" ? 1.5f : 1.3f;
+        rect.sizeDelta = image.sprite.rect.size * scale * displayScale * enlargement;
+        // 확대 후에도 발끝은 칸 하단 안쪽의 같은 높이에 맞춥니다.
+        rect.anchoredPosition = new Vector2(0f, (rect.sizeDelta.y - 118f) * 0.5f);
     }
 
 private Sprite GetSprite(string id)

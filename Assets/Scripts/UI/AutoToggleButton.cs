@@ -4,7 +4,7 @@ using UnityEngine.UI;
 [RequireComponent(typeof(Button), typeof(Image))]
 public class AutoToggleButton : MonoBehaviour
 {
-    [SerializeField] private bool isAutoEnabled;
+    private bool isAutoEnabled = true;
     [SerializeField] private Color enabledColor = new Color(0.2f, 0.82f, 0.96f, 1f);
     [SerializeField] private Color disabledColor = new Color(0.16f, 0.34f, 0.38f, 1f);
 
@@ -13,10 +13,6 @@ public class AutoToggleButton : MonoBehaviour
     private Text label;
     private BattleManager battleManager;
 
-    public bool IsAutoEnabled
-    {
-        get { return isAutoEnabled; }
-    }
 
     private void Awake()
     {
@@ -44,7 +40,7 @@ public class AutoToggleButton : MonoBehaviour
             return;
         }
 
-        battleManager.SessionStarted += HandleSessionStarted;
+        battleManager.SessionStarted += OnSessionStart;
         ApplyAutoState(battleManager.CurrentSession);
     }
 
@@ -57,7 +53,7 @@ public class AutoToggleButton : MonoBehaviour
 
         if (battleManager != null)
         {
-            battleManager.SessionStarted -= HandleSessionStarted;
+            battleManager.SessionStarted -= OnSessionStart;
         }
     }
 
@@ -68,7 +64,7 @@ public class AutoToggleButton : MonoBehaviour
         ApplyAutoState(battleManager == null ? null : battleManager.CurrentSession);
     }
 
-    private void HandleSessionStarted(BattleSession session)
+    private void OnSessionStart(BattleSession session)
     {
         ApplyAutoState(session);
     }
@@ -90,7 +86,7 @@ public class AutoToggleButton : MonoBehaviour
             return;
         }
 
-        label.text = isAutoEnabled ? "AUTO ON" : "AUTO OFF";
-        label.color = isAutoEnabled ? Color.white : new Color(0.55f, 0.65f, 0.67f, 1f);
+        label.text = "AUTO";
+        label.color = isAutoEnabled ? new Color(1f, 0.86f, 0.35f, 1f) : new Color(0.88f, 0.93f, 1f, 0.98f);
     }
 }
