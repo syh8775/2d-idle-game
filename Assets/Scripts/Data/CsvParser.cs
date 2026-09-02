@@ -14,7 +14,7 @@ public static class CsvParser
 
         string text = source.text.Replace("\r\n", "\n").Replace('\r', '\n');
         string[] lines = text.Split('\n');
-        int headerIndex = FindNextContentLine(lines, 0);
+        int headerIndex = FindNextLine(lines, 0);
 
         if (headerIndex < 0)
         {
@@ -64,7 +64,7 @@ public static class CsvParser
         return rows;
     }
 
-    private static int FindNextContentLine(string[] lines, int startIndex)
+    private static int FindNextLine(string[] lines, int startIndex)
     {
         for (int index = startIndex; index < lines.Length; index++)
         {

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 public enum BattleUnitSide
 {
@@ -6,22 +6,11 @@ public enum BattleUnitSide
     Enemy
 }
 
-public enum BattleUnitState
-{
-    Idle,
-    Moving,
-    Attacking,
-    Hit,
-    Dead
-}
-
 [Serializable]
 public class BattleUnit
 {
     public string Id { get; private set; }
-    public string DisplayName { get; private set; }
-    public string BattleAssetPath { get; private set; }
-    public string MotionAssetFolder { get; private set; }
+    public string Role { get; private set; }
     public BattleUnitSide Side { get; private set; }
     public int FormationSlot { get; private set; }
     public int Row { get; private set; }
@@ -31,7 +20,6 @@ public class BattleUnit
     public int Attack { get; private set; }
     public int Defense { get; private set; }
     public int Speed { get; private set; }
-    public BattleUnitState State { get; private set; }
     private float attackTimer;
     public event Action<BattleUnit> HitPointsChanged;
     public event Action<BattleUnit> Died;
@@ -53,9 +41,7 @@ public class BattleUnit
         }
 
         Id = definition.Id;
-        DisplayName = definition.DisplayName;
-        BattleAssetPath = definition.BattleAssetPath;
-        MotionAssetFolder = definition.MotionAssetFolder;
+        Role = definition.Role;
         Side = BattleUnitSide.Ally;
         FormationSlot = member.FormationSlot;
 
@@ -67,7 +53,6 @@ public class BattleUnit
         Attack = GameUtil.GetLevelStat(definition.Attack, level);
         Defense = GameUtil.GetLevelStat(definition.Defense, level);
         Speed = definition.Speed;
-        State = BattleUnitState.Idle;
         attackTimer = 0f;
     }
 
@@ -79,23 +64,45 @@ public class BattleUnit
         }
 
         Id = definition.Id;
-        DisplayName = definition.DisplayName;
-        BattleAssetPath = definition.BattleAssetPath;
-        MotionAssetFolder = definition.MotionAssetFolder;
+        Role = string.Empty;
         Side = BattleUnitSide.Enemy;
         FormationSlot = slot.FormationSlot;
         Row = slot.Row;
         Column = slot.Column;
-        MaxHitPoints = definition.HitPoints;
-        CurrentHitPoints = definition.HitPoints;
-        Attack = definition.Attack;
+
+        int stageIncrease = GetStageBoost(slot.StageId);
+        bool isBoss = definition.Id == "ENEMY_BOSS";
+
+        MaxHitPoints = isBoss ? definition.HitPoints : GetStageStat(definition.HitPoints, stageIncrease, 10);
+        CurrentHitPoints = MaxHitPoints;
+        Attack = isBoss ? definition.Attack : GetStageStat(definition.Attack, stageIncrease, 6);
         Defense = definition.Defense;
         Speed = definition.Speed;
-        State = BattleUnitState.Idle;
         attackTimer = 0f;
     }
 
-    public void TickAttackCooldown(float deltaSeconds)
+    private static int GetStageBoost(string stageId)
+    {
+        const string prefix = "STAGE_";
+
+        int stageNumber;
+        if (string.IsNullOrEmpty(stageId) ||
+            !stageId.StartsWith(prefix) ||
+            !int.TryParse(stageId.Substring(prefix.Length), out stageNumber))
+        {
+            return 0;
+        }
+
+        return Math.Max(0, stageNumber - 1);
+    }
+
+    private static int GetStageStat(int baseStat, int stageIncrease, int growthPercent)
+    {
+        // 1스테이지 기본값을 기준으로 매 스테이지 같은 비율만큼 고정 가산합니다.
+        return (baseStat * (100 + stageIncrease * growthPercent) + 50) / 100;
+    }
+
+    public void TickAttackCd(float deltaSeconds)
     {
         if (deltaSeconds <= 0f || attackTimer <= 0f)
         {
@@ -105,12 +112,12 @@ public class BattleUnit
         attackTimer -= deltaSeconds;
     }
 
-    public void ResetAttackCooldown()
+    public void ResetAttackCd()
     {
-        attackTimer = GetAttackInterval();
+        attackTimer = GetAttackDelay();
     }
 
-    private float GetAttackInterval()
+    private float GetAttackDelay()
     {
         if (Speed <= 0)
         {
@@ -126,7 +133,12 @@ public class BattleUnit
             return 0;
         }
 
-        int actualDamage = damage - Defense;
+        // 방어력이 기준값 100과 같으면 피해가 절반이 되며,
+        // 방어력이 공격력보다 높아도 피해가 갑자기 1로 고정되지 않습니다.
+        const int DefenseBase = 100;
+        int actualDamage = (int)Math.Round(
+            damage * DefenseBase / (double)(DefenseBase + Defense));
+
         if (actualDamage < 1)
         {
             actualDamage = 1;
@@ -137,11 +149,6 @@ public class BattleUnit
         if (CurrentHitPoints <= 0)
         {
             CurrentHitPoints = 0;
-            ChangeState(BattleUnitState.Dead);
-        }
-        else
-        {
-            ChangeState(BattleUnitState.Hit);
         }
 
         if (HitPointsChanged != null)
@@ -181,13 +188,5 @@ public class BattleUnit
         return actualHealing;
     }
 
-    public void ChangeState(BattleUnitState nextState)
-    {
-        if (State == BattleUnitState.Dead && nextState != BattleUnitState.Dead)
-        {
-            return;
-        }
 
-        State = nextState;
-    }
 }

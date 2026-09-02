@@ -1,28 +1,27 @@
-﻿using System;
+using System;
 
 public static class DataValidator
 {
     public static void Validate(DataManager dataManager)
     {
-        ValidateCharacters(dataManager);
+        CheckCharacters(dataManager);
         ValidateSkills(dataManager);
         ValidateStages(dataManager);
         ValidateRewards(dataManager);
-        ValidatePartySlots(dataManager);
-        ValidateEnemyFormations(dataManager);
+        CheckPartySlots(dataManager);
+        CheckEnemyForms(dataManager);
     }
 
-    private static void ValidateCharacters(DataManager dataManager)
+    private static void CheckCharacters(DataManager dataManager)
     {
         foreach (CharacterDefinition character in dataManager.Characters.Values)
         {
-            ValidateCharacterSkill(dataManager, character, character.NormalSkillId);
-            ValidateCharacterSkill(dataManager, character, character.SpecialSkillId);
-            ValidateCharacterSkill(dataManager, character, character.UltimateSkillId);
+            CheckCharSkill(dataManager, character, character.NormalSkillId);
+            CheckCharSkill(dataManager, character, character.SpecialSkillId);
         }
     }
 
-    private static void ValidateCharacterSkill(DataManager dataManager, CharacterDefinition character, string skillId)
+    private static void CheckCharSkill(DataManager dataManager, CharacterDefinition character, string skillId)
     {
         SkillDefinition skill;
 
@@ -66,7 +65,7 @@ public static class DataValidator
                 throw new FormatException("보상의 스테이지 ID가 일치하지 않습니다" + reward.Id + " -> " + reward.StageId);
             }
 
-            ValidateStageFormation(dataManager, stage);
+            CheckStageForm(dataManager, stage);
         }
     }
 
@@ -83,7 +82,7 @@ public static class DataValidator
         }
     }
 
-    private static void ValidateStageFormation(DataManager dataManager, StageDefinition stage)
+    private static void CheckStageForm(DataManager dataManager, StageDefinition stage)
     {
         bool formationFound = false;
 
@@ -105,7 +104,7 @@ public static class DataValidator
         }
     }
 
-    private static void ValidatePartySlots(DataManager dataManager)
+    private static void CheckPartySlots(DataManager dataManager)
     {
         foreach (PartySlotDefinition partySlot in dataManager.PartySlots.Values)
         {
@@ -118,7 +117,7 @@ public static class DataValidator
         }
     }
 
-    private static void ValidateEnemyFormations(DataManager dataManager)
+    private static void CheckEnemyForms(DataManager dataManager)
     {
         foreach (EnemyFormationSlotDefinition formation in dataManager.EnemyFormationSlots)
         {

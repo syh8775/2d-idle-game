@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using UnityEngine;
@@ -66,8 +66,6 @@ public class DataManager : MonoBehaviour
         get { return enemyFormationSlots; }
     }
 
-    public event Action<DataManager> Loaded;
-
     public bool LoadAll()
     {
         ClearData();
@@ -80,7 +78,7 @@ public class DataManager : MonoBehaviour
             LoadStages();
             LoadRewards();
             LoadPartySlots();
-            LoadEnemyFormations();
+            LoadEnemyForms();
 
             DataValidator.Validate(this);
 
@@ -89,11 +87,6 @@ public class DataManager : MonoBehaviour
                 "데이터 로드 완료 - 캐릭터 " + characters.Count + "명, 스킬 " +
                 skills.Count + "개, 적 " + enemies.Count + "명, 스테이지 " +
                 stages.Count + "개");
-
-            if (Loaded != null)
-            {
-                Loaded(this);
-            }
 
             return true;
         }
@@ -155,14 +148,12 @@ public class DataManager : MonoBehaviour
                 Rarity = Required(row, "rarity"),
                 Role = Required(row, "role"),
                 BattleAssetPath = Optional(row, "battleAssetPath"),
-                MotionAssetFolder = Optional(row, "motionAssetFolder"),
                 HitPoints = Integer(row, "hp"),
                 Attack = Integer(row, "attack"),
                 Defense = Integer(row, "defense"),
                 Speed = Integer(row, "speed"),
                 NormalSkillId = Required(row, "normalSkillId"),
                 SpecialSkillId = Required(row, "specialSkillId"),
-                UltimateSkillId = Required(row, "ultimateSkillId"),
                 Status = Required(row, "status")
             };
 
@@ -214,9 +205,7 @@ public class DataManager : MonoBehaviour
             {
                 Id = Required(row, "id"),
                 DisplayName = Required(row, "displayName"),
-                EnemyType = Required(row, "enemyType"),
                 BattleAssetPath = Optional(row, "battleAssetPath"),
-                MotionAssetFolder = Optional(row, "motionAssetFolder"),
                 HitPoints = Integer(row, "hp"),
                 Attack = Integer(row, "attack"),
                 Defense = Integer(row, "defense"),
@@ -293,12 +282,9 @@ public class DataManager : MonoBehaviour
             PartySlotDefinition definition = new PartySlotDefinition
             {
                 Id = Required(row, "id"),
-                SlotIndex = Integer(row, "slotIndex"),
                 Side = Required(row, "side"),
                 DefaultCharacterId = Required(row, "defaultCharacterId"),
                 FormationSlot = Integer(row, "formationSlot"),
-                Row = Integer(row, "row"),
-                Column = Integer(row, "column"),
                 Status = Required(row, "status")
             };
 
@@ -311,7 +297,7 @@ public class DataManager : MonoBehaviour
         }
     }
 
-    private void LoadEnemyFormations()
+    private void LoadEnemyForms()
     {
         List<Dictionary<string, string>> rows = CsvParser.ReadRows(enemyFormationsCsv);
 

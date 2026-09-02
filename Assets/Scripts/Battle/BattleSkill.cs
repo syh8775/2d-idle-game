@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 public class BattleSkill
 {
@@ -40,6 +40,12 @@ public class BattleSkill
             RemainingCooldown = 0f;
         }
     }
+
+public void Ready()
+    {
+        RemainingCooldown = 0f;
+    }
+
 
     public bool TryUse(BattleSession session)
     {

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEngine;
 
 public class BattleManager : MonoBehaviour
@@ -11,21 +11,7 @@ public class BattleManager : MonoBehaviour
 
     private PartyFormation formation;
 
-    public BattleSessionState State
-    {
-        get
-        {
-            if (CurrentSession == null)
-            {
-                return BattleSessionState.None;
-            }
-
-            return CurrentSession.State;
-        }
-    }
-
     public event Action<BattleSession> SessionStarted;
-    public event Action<BattleSession> SessionStateChanged;
     public event Action<BattleSession> SessionCompleted;
 
     public void Initialize(DataManager source, PartyFormation party, PlayerProgressModel playerProgress)
@@ -65,7 +51,7 @@ public class BattleManager : MonoBehaviour
         {
             if (CurrentSession != null)
             {
-                CurrentSession.StateChanged -= HandleSessionStateChanged;
+                CurrentSession.StateChanged -= OnSessionChange;
             }
 
             CurrentSession = new BattleSession(stage, dataManager, formation, progress);
@@ -76,7 +62,7 @@ public class BattleManager : MonoBehaviour
             return false;
         }
 
-        CurrentSession.StateChanged += HandleSessionStateChanged;
+        CurrentSession.StateChanged += OnSessionChange;
         CurrentSession.Start();
 
         if (SessionStarted != null)
@@ -93,7 +79,7 @@ public class BattleManager : MonoBehaviour
         return true;
     }
 
-    public bool RestartCurrentStage()
+    public bool RestartStage()
     {
         if (CurrentSession == null)
         {
@@ -110,22 +96,6 @@ public class BattleManager : MonoBehaviour
         return StartStage(stageId);
     }
 
-    public void CompleteCurrent(BattleOutcome outcome)
-    {
-        if (CurrentSession != null)
-        {
-            CurrentSession.Complete(outcome);
-        }
-    }
-
-    public void CancelCurrent()
-    {
-        if (CurrentSession != null)
-        {
-            CurrentSession.Cancel();
-        }
-    }
-
     public void Tick(float deltaSeconds)
     {
         if (CurrentSession != null)
@@ -134,19 +104,14 @@ public class BattleManager : MonoBehaviour
         }
     }
 
-    private void HandleSessionStateChanged(BattleSession session)
+    private void OnSessionChange(BattleSession session)
     {
-        if (SessionStateChanged != null)
-        {
-            SessionStateChanged(session);
-        }
-
         if (!session.IsFinished)
         {
             return;
         }
 
-        session.StateChanged -= HandleSessionStateChanged;
+        session.StateChanged -= OnSessionChange;
 
         if (SessionCompleted != null)
         {
@@ -158,7 +123,7 @@ public class BattleManager : MonoBehaviour
     {
         if (CurrentSession != null)
         {
-            CurrentSession.StateChanged -= HandleSessionStateChanged;
+            CurrentSession.StateChanged -= OnSessionChange;
         }
     }
 }

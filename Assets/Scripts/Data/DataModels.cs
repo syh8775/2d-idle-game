@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 public enum BattleSessionState
 {
@@ -41,14 +41,12 @@ public class CharacterDefinition
     public string Rarity;
     public string Role;
     public string BattleAssetPath;
-    public string MotionAssetFolder;
     public int HitPoints;
     public int Attack;
     public int Defense;
     public int Speed;
     public string NormalSkillId;
     public string SpecialSkillId;
-    public string UltimateSkillId;
     public string Status;
 }
 
@@ -57,9 +55,7 @@ public class EnemyDefinition
 {
     public string Id;
     public string DisplayName;
-    public string EnemyType;
     public string BattleAssetPath;
-    public string MotionAssetFolder;
     public int HitPoints;
     public int Attack;
     public int Defense;
@@ -98,12 +94,9 @@ public class EnemyFormationSlotDefinition
 public class PartySlotDefinition
 {
     public string Id;
-    public int SlotIndex;
     public string Side;
     public string DefaultCharacterId;
     public int FormationSlot;
-    public int Row;
-    public int Column;
     public string Status;
 }
 

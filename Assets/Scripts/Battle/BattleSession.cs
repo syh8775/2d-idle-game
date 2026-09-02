@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 public class BattleSession
@@ -12,7 +12,16 @@ public class BattleSession
     public bool IsAutoEnabled { get; private set; }
     public int RewardGold { get; private set; }
 
+    public float RemainTime
+    {
+        get
+        {
+            float remain = Stage.TimeLimitSeconds - ElapsedSeconds;
+            return Math.Max(0f, remain);
+        }
+    }
     private int nextAutoSkillIndex;
+    private bool isSkillDamage;
 
     public bool IsFinished
     {
@@ -25,6 +34,7 @@ public class BattleSession
 
     public event Action<BattleSession> StateChanged;
     public event Action<BattleUnit, BattleUnit, int> AttackResolved;
+    public event Action<BattleUnit, int, bool> DamageResolved;
     public event Action<BattleSkill> SkillUsed;
 
     public BattleSession(StageDefinition stage, DataManager dataManager, PartyFormation formation, PlayerProgressModel progress)
@@ -81,7 +91,7 @@ public class BattleSession
         IsAutoEnabled = isEnabled;
     }
 
-    public bool TryUseSkill(int skillIndex)
+public bool TryUseSkill(int skillIndex)
     {
         if (State != BattleSessionState.Running || skillIndex < 0 || skillIndex >= Skills.Count)
         {
@@ -89,8 +99,11 @@ public class BattleSession
         }
 
         BattleSkill skill = Skills[skillIndex];
+        isSkillDamage = true;
+        bool skillUsed = skill.TryUse(this);
+        isSkillDamage = false;
 
-        if (!skill.TryUse(this))
+        if (!skillUsed)
         {
             return false;
         }
@@ -166,7 +179,7 @@ public class BattleSession
         SetState(BattleSessionState.Cancelled);
     }
 
-    public int ApplyDamage(BattleUnit target, int damage)
+public int ApplyDamage(BattleUnit target, int damage)
     {
         if (State != BattleSessionState.Running ||
             target == null ||
@@ -176,7 +189,13 @@ public class BattleSession
         }
 
         int actualDamage = target.ApplyDamage(damage);
-        CheckBattleOutcome();
+
+        if (actualDamage > 0 && DamageResolved != null)
+        {
+            DamageResolved(target, actualDamage, isSkillDamage);
+        }
+
+        CheckOutcome();
         return actualDamage;
     }
 
@@ -190,7 +209,7 @@ public class BattleSession
         return target.ApplyHealing(healing);
     }
 
-    private void CheckBattleOutcome()
+    private void CheckOutcome()
     {
         int aliveAllies = 0;
         int aliveEnemies = 0;
@@ -259,7 +278,7 @@ public class BattleSession
                 continue;
             }
 
-            unit.TickAttackCooldown(deltaSeconds);
+            unit.TickAttackCd(deltaSeconds);
             if (!unit.CanAttack)
             {
                 continue;
@@ -271,7 +290,7 @@ public class BattleSession
                 continue;
             }
 
-            unit.ChangeState(BattleUnitState.Attacking);
+
             int actualDamage = ApplyDamage(target, unit.Attack);
 
             if (AttackResolved != null)
@@ -279,21 +298,27 @@ public class BattleSession
                 AttackResolved(unit, target, actualDamage);
             }
 
-            unit.ResetAttackCooldown();
+            unit.ResetAttackCd();
 
             if (State != BattleSessionState.Running)
             {
                 return;
             }
 
-            unit.ChangeState(BattleUnitState.Idle);
+
         }
     }
 
-    public BattleUnit FindTarget(BattleUnit attacker)
+public BattleUnit FindTarget(BattleUnit attacker)
     {
-        BattleUnit closestTarget = null;
-        int closestDistance = int.MaxValue;
+        bool attacksBackRow =
+            attacker.Role == "Assassin" ||
+            attacker.Role == "Ranger" ||
+            attacker.Role == "Caster";
+
+        BattleUnit target = null;
+        int targetColumn = attacksBackRow ? int.MinValue : int.MaxValue;
+        int closestRowDistance = int.MaxValue;
 
         foreach (BattleUnit unit in Units)
         {
@@ -302,21 +327,26 @@ public class BattleSession
                 continue;
             }
 
-            int distance =
-                Math.Abs(attacker.Row - unit.Row) +
-                Math.Abs(attacker.Column - unit.Column);
+            int rowDistance = Math.Abs(attacker.Row - unit.Row);
+            bool isPreferredColumn =
+                attacksBackRow
+                    ? unit.Column > targetColumn
+                    : unit.Column < targetColumn;
 
-            if (closestTarget == null ||
-                distance < closestDistance ||
-                distance == closestDistance &&
-                unit.FormationSlot < closestTarget.FormationSlot)
+            if (target == null ||
+                isPreferredColumn ||
+                unit.Column == targetColumn &&
+                (rowDistance < closestRowDistance ||
+                 rowDistance == closestRowDistance &&
+                 unit.FormationSlot < target.FormationSlot))
             {
-                closestTarget = unit;
-                closestDistance = distance;
+                target = unit;
+                targetColumn = unit.Column;
+                closestRowDistance = rowDistance;
             }
         }
 
-        return closestTarget;
+        return target;
     }
     private void CreateUnits(DataManager dataManager, PartyFormation formation, PlayerProgressModel progress)
     {
@@ -326,6 +356,12 @@ public class BattleSession
 
         foreach (PartyMember member in partySlots)
         {
+            // 슬롯 0은 편성에서 해제된 캐릭터입니다.
+            if (member.FormationSlot == 0)
+            {
+                continue;
+            }
+
             if (allyCount >= Stage.PartySize)
             {
                 break;
@@ -349,7 +385,7 @@ public class BattleSession
             BattleUnit ally = new BattleUnit(character, member, level);
 
             Units.Add(ally);
-            CreateBattleSkill(ally, character, dataManager);
+            MakeBattleSkill(ally, character, dataManager);
             allyCount++;
         }
 
@@ -386,34 +422,36 @@ public class BattleSession
         }
     }
 
-    private void CreateBattleSkill(BattleUnit caster, CharacterDefinition character, DataManager dataManager)
+    private void MakeBattleSkill(BattleUnit caster, CharacterDefinition character, DataManager dataManager)
     {
         SkillDefinition skill;
 
         if (!dataManager.TryGetSkill(character.SpecialSkillId, out skill))
         {
             throw new Exception(
-                "아군 특수 스킬 데이터를 찾을 수 없습니다: " + character.SpecialSkillId);
+                "아군 궁극기 데이터를 찾을 수 없습니다: " + character.SpecialSkillId);
         }
 
-        ISkillEffect effect = CreateSkillEffect(skill.EffectType);
+        ISkillEffect effect = MakeSkillEffect(skill.EffectType);
         Skills.Add(new BattleSkill(skill, caster, effect));
     }
 
-    private static ISkillEffect CreateSkillEffect(string effectType)
+    private static ISkillEffect MakeSkillEffect(string effectType)
     {
         switch (effectType)
         {
             case "SingleDamage": return new SingleDamageEffect();
             case "AreaDamage": return new AreaDamageEffect();
             case "Heal": return new HealEffect();
+            case "BackRowDamage": return new BackRowDamageEffect();
+            case "LowestHpRateDamage": return new LowestHpRateDamageEffect();
             default: throw new Exception("지원하지 않는 스킬 효과입니다." + effectType);
         }
     }
 
     private static int CompareMembers(PartyMember left, PartyMember right)
     {
-        return left.SlotIndex.CompareTo(right.SlotIndex);
+        return left.FormationSlot.CompareTo(right.FormationSlot);
     }
 
     private void SetState(BattleSessionState nextState)
