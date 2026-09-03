@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs/images/title-wordmark.png" width="820" alt="방치형 원정대">
+</p>
+
 # 방치형 원정대 (Idle RPG)
 
 > 자동 전투로 골드를 획득하고, 캐릭터 성장과 4인 파티 편성을 반복하는 Unity 2D 방치형 RPG
