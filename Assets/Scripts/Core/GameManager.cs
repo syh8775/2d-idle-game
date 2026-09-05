@@ -25,6 +25,7 @@ public class GameManager : MonoBehaviour
     private BattleSession retryNoticeSession;
 private Coroutine retryCoroutine;
     private float activeTimeSaveTimer;
+    private float resultEndsAt;
 
     public DataManager Data
     {
@@ -300,6 +301,7 @@ private void QueueAutoRetry(BattleSession session, float delay)
             StopCoroutine(retryCoroutine);
         }
 
+        resultEndsAt = Time.time + delay;
         retryCoroutine = StartCoroutine(RetryAfterDelay(session, delay));
     }
 
@@ -307,7 +309,10 @@ private IEnumerator RetryAfterDelay(BattleSession session, float delay)
     {
         if (delay > 0f)
         {
-            yield return new WaitForSeconds(delay);
+            while (battleManager.CurrentSession == session && Time.time < resultEndsAt)
+            {
+                yield return null;
+            }
         }
         else
         {
@@ -324,7 +329,11 @@ private IEnumerator RetryAfterDelay(BattleSession session, float delay)
 
     private IEnumerator GoNext(BattleSession session)
     {
-        yield return new WaitForSeconds(5f);
+        resultEndsAt = Time.time + 5f;
+        while (battleManager.CurrentSession == session && Time.time < resultEndsAt)
+        {
+            yield return null;
+        }
 
         if (session == null || battleManager == null || battleManager.CurrentSession != session)
         {
@@ -360,6 +369,21 @@ private IEnumerator RetryAfterDelay(BattleSession session, float delay)
         {
             Debug.LogError("다음 스테이지 시작에 실패했습니다: " + nextStageId);
         }
+    }
+
+    public void ResultShown(BattleSession session)
+    {
+        if (session != null && battleManager.CurrentSession == session && session.IsFinished)
+        {
+            // 결과 UI를 표시한 순간부터 실제 전환과 표시가 같은 5초를 사용합니다.
+            resultEndsAt = Time.time + 5f;
+        }
+    }
+
+    public int ResultSeconds(BattleSession session)
+    {
+        if (session == null || battleManager.CurrentSession != session) return 0;
+        return Mathf.Clamp(Mathf.CeilToInt(resultEndsAt - Time.time), 0, 5);
     }
 
     private void SaveProgress()

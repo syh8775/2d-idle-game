@@ -81,7 +81,8 @@ public class BattleResultView
             }
             else
             {
-                timer = coroutineHost.StartCoroutine(Tick("Next Stage "));
+                GameManager.Instance.ResultShown(session);
+                timer = coroutineHost.StartCoroutine(Tick(session, "Next Stage "));
             }
         }
         else
@@ -98,7 +99,8 @@ public class BattleResultView
             {
                 SetupTextArea(countdownText, new Vector2(0f, -160f), new Vector2(600f, 64f), 36, new Color(0.6f, 1f, 1f));
                 countdownText.gameObject.SetActive(true);
-                timer = coroutineHost.StartCoroutine(Tick("Retrying "));
+                GameManager.Instance.ResultShown(session);
+                timer = coroutineHost.StartCoroutine(Tick(session, "Retrying "));
             }
             else
             {
@@ -224,12 +226,12 @@ public void Dispose()
     }
 
 
-    private IEnumerator Tick(string label)
+    private IEnumerator Tick(BattleSession session, string label)
     {
-        for (int seconds = 5; seconds > 0; seconds--)
+        while (GameManager.Instance != null && GameManager.Instance.ResultSeconds(session) > 0)
         {
-            countdownText.text = label + seconds;
-            yield return new WaitForSeconds(1f);
+            countdownText.text = label + GameManager.Instance.ResultSeconds(session);
+            yield return null;
         }
 
         timer = null;

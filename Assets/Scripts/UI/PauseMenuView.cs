@@ -22,11 +22,22 @@ public class PauseMenuView : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Escape))
         {
             if (pauseContent != null && pauseContent.activeSelf) ContinueGame();
-            else if (popup != null && !popup.activeSelf) Open();
+            else if (CanOpen()) Open();
         }
     }
 
-
+    private bool CanOpen()
+    {
+        if (popup == null || popup.activeSelf || uiManager == null) return false;
+        foreach (UIBase view in uiManager.GetComponentsInChildren<UIBase>(true))
+        {
+            if (view.Type != UIType.Battle && view.gameObject.activeInHierarchy) return false;
+        }
+        OfflineRewardView rewards = uiManager.GetComponentInChildren<OfflineRewardView>();
+        if (rewards != null && rewards.IsPopupOpen) return false;
+        Transform readyPopup = uiManager.transform.Find("ReadyPopup");
+        return readyPopup == null || !readyPopup.gameObject.activeInHierarchy;
+    }
 
     private void Open()
     {

@@ -104,6 +104,7 @@ private void OnDestroy()
 
     private void OnDisable()
     {
+        HideDamageTexts();
         HideSkillIcons();
     }
 
@@ -189,6 +190,7 @@ private void OnDestroy()
         }
 
         StopAllCoroutines();
+        HideDamageTexts();
         HideSkillIcons();
         feedbackView.ResetSession();
 
@@ -366,9 +368,10 @@ private void RefreshStatus(BattleUnit unit)
         }
 
         Transform character = slot.Find("Character");
-        if (character != null)
+        // 사망한 캐릭터는 사망 페이드가 끝난 뒤 숨깁니다.
+        if (character != null && unit.IsAlive)
         {
-            character.gameObject.SetActive(unit.IsAlive);
+            character.gameObject.SetActive(true);
         }
 
         Transform statusOverlay = slot.Find("StatusOverlay");
@@ -468,7 +471,7 @@ private void RefreshStatus(BattleUnit unit)
         }
 
         slot.gameObject.SetActive(true);
-        character.gameObject.SetActive(true);
+        character.gameObject.SetActive(unit.IsAlive);
         image.enabled = true;
 
         Transform statusOverlay = slot.Find("StatusOverlay");
@@ -582,6 +585,15 @@ private void ShowDamage(BattleUnit unit, int damage, Color damageColor)
         }
         damageTextVersions[damageText] = version;
         StartCoroutine(DamageRise(damageText, version, damageColor));
+    }
+
+    private void HideDamageTexts()
+    {
+        foreach (Text damageText in damageTexts.Values)
+        {
+            if (damageText != null) damageText.gameObject.SetActive(false);
+        }
+        damageTextVersions.Clear();
     }
 
 private IEnumerator DamageRise(Text damageText, int version, Color startColor)

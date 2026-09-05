@@ -13,7 +13,7 @@ public class OfflineRewardView : MonoBehaviour
     [SerializeField] private Text killRecordText;
     [SerializeField] private Text goldRecordText;
     [SerializeField] private Text damageRecordText;
-    private float previousTimeScale = 1f;
+    public bool IsPopupOpen { get { return (popup != null && popup.activeInHierarchy) || (recordPopup != null && recordPopup.activeInHierarchy); } }
 
     public void Initialize(UIManager uiManager, GameManager owner)
     {
@@ -32,8 +32,6 @@ private void ShowRecord()
     {
         if (recordPopup == null || recordPopup.activeSelf) return;
         RefreshRecord();
-        previousTimeScale = Time.timeScale;
-        Time.timeScale = 0f;
         recordPopup.SetActive(true);
     }
 
@@ -41,7 +39,6 @@ private void ShowRecord()
     {
         if (recordPopup == null || !recordPopup.activeSelf) return;
         recordPopup.SetActive(false);
-        Time.timeScale = previousTimeScale;
     }
 
     private void RefreshRecord()
@@ -140,11 +137,6 @@ public void Hide()
 
 private void OnDestroy()
     {
-        if (recordPopup != null && recordPopup.activeSelf)
-        {
-            Time.timeScale = previousTimeScale;
-        }
-
         if (gameManager != null)
         {
             gameManager.ProgressChanged -= Refresh;
