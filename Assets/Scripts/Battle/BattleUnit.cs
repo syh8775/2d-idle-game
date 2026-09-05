@@ -138,7 +138,7 @@ public class BattleUnit
         // 방어력이 공격력보다 높아도 피해가 갑자기 1로 고정되지 않습니다.
         const int DefenseBase = 100;
         int actualDamage = (int)Math.Round(
-            damage * DefenseBase / (double)(DefenseBase + Defense));
+            damage * (double)DefenseBase / (DefenseBase + (double)Defense));
 
         if (actualDamage < 1)
         {

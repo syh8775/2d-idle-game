@@ -92,7 +92,7 @@ public class DataManager : MonoBehaviour
         }
         catch (Exception exception)
         {
-            IsLoaded = false;
+            ClearData();
             Debug.LogError("데이터 로드 실패: " + exception.Message);
             return false;
         }
@@ -332,7 +332,7 @@ public class DataManager : MonoBehaviour
         float value;
         string text = Required(row, key);
 
-        if (!float.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out value))
+        if (!float.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out value) || float.IsNaN(value) || float.IsInfinity(value))
         {
             throw new FormatException("숫자로 바꿀 수 없는 소수 항목입니다: " + key);
         }

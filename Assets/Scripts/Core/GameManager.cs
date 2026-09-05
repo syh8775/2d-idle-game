@@ -58,6 +58,13 @@ private void Awake()
         }
 
         Initialize();
+        if (!IsInitialized)
+        {
+            // 초기화에 실패하면 데이터가 없는 UI와 전투를 실행하지 않습니다.
+            UIManager uiManager = FindFirstObjectByType<UIManager>();
+            if (uiManager != null) uiManager.gameObject.SetActive(false);
+            enabled = false;
+        }
     }
 
     public void Initialize()

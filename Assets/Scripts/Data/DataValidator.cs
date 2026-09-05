@@ -1,10 +1,24 @@
 using System;
+using System.Collections.Generic;
 
 public static class DataValidator
 {
     public static void Validate(DataManager dataManager)
     {
+        if (dataManager.Characters.Count == 0 || dataManager.Skills.Count == 0 ||
+            dataManager.Enemies.Count == 0 || dataManager.Stages.Count == 0 ||
+            dataManager.Rewards.Count == 0 || dataManager.PartySlots.Count == 0)
+        {
+            throw new FormatException("필수 CSV 데이터가 비어 있습니다.");
+        }
         CheckCharacters(dataManager);
+        foreach (EnemyDefinition enemy in dataManager.Enemies.Values)
+        {
+            if (enemy.HitPoints <= 0 || enemy.Attack < 0 || enemy.Defense < 0 || enemy.Speed <= 0)
+            {
+                throw new FormatException("적 능력치 범위가 올바르지 않습니다: " + enemy.Id);
+            }
+        }
         ValidateSkills(dataManager);
         ValidateStages(dataManager);
         ValidateRewards(dataManager);
@@ -34,7 +48,7 @@ public static class DataValidator
             throw new FormatException("캐릭터가 참조하는 스킬을 찾을 수 없습니다" + character.Id + " -> " + skillId);
         }
 
-        if (!string.Equals(skill.CharacterId, character.Id, StringComparison.OrdinalIgnoreCase))
+        if (skill.SkillType != "Special" || !string.Equals(skill.CharacterId, character.Id, StringComparison.OrdinalIgnoreCase))
         {
             throw new FormatException("스킬의 캐릭터 ID가 일치하지 않습니다" + skill.Id + " -> " + skill.CharacterId);
         }
@@ -47,6 +61,14 @@ public static class DataValidator
             if (skill.CooldownSeconds < 0f || skill.EffectMultiplier < 0f)
             {
                 throw new FormatException("스킬 수치 범위가 올바르지 않습니다: " + skill.Id);
+            }
+
+            if (skill.SkillType != "Special" ||
+                (skill.EffectType != "SingleDamage" && skill.EffectType != "AreaDamage" &&
+                 skill.EffectType != "Heal" && skill.EffectType != "BackRowDamage" &&
+                 skill.EffectType != "LowestHpRateDamage"))
+            {
+                throw new FormatException("지원하지 않는 스킬 종류 또는 효과입니다: " + skill.Id);
             }
 
             CharacterDefinition character;
@@ -125,11 +147,19 @@ public static class DataValidator
 
     private static void CheckPartySlots(DataManager dataManager)
     {
+        HashSet<int> occupiedSlots = new HashSet<int>();
+        HashSet<string> characterIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (PartySlotDefinition partySlot in dataManager.PartySlots.Values)
         {
             if (partySlot.FormationSlot < 1 || partySlot.FormationSlot > 9)
             {
                 throw new FormatException("파티 슬롯 범위가 올바르지 않습니다: " + partySlot.Id);
+            }
+
+            if (partySlot.Side != "Ally" || !occupiedSlots.Add(partySlot.FormationSlot) ||
+                !characterIds.Add(partySlot.DefaultCharacterId))
+            {
+                throw new FormatException("파티 진영 또는 중복 배치가 올바르지 않습니다: " + partySlot.Id);
             }
 
             CharacterDefinition character;
@@ -143,11 +173,21 @@ public static class DataValidator
 
     private static void CheckEnemyForms(DataManager dataManager)
     {
+        HashSet<string> occupiedSlots = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        HashSet<string> occupiedPositions = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (EnemyFormationSlotDefinition formation in dataManager.EnemyFormationSlots)
         {
             if (formation.FormationSlot < 1 || formation.FormationSlot > 9)
             {
                 throw new FormatException("적 편성 수치 범위가 올바르지 않습니다: " + formation.FormationId);
+            }
+
+            string group = formation.StageId + "/" + formation.FormationId + "/";
+            if (formation.Row < 1 || formation.Row > 3 || formation.Column < 1 || formation.Column > 3 ||
+                !occupiedSlots.Add(group + formation.FormationSlot) ||
+                !occupiedPositions.Add(group + formation.Row + "/" + formation.Column))
+            {
+                throw new FormatException("적 편성 좌표 또는 중복 배치가 올바르지 않습니다: " + formation.FormationId);
             }
 
             StageDefinition stage;
