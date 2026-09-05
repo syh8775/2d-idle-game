@@ -12,6 +12,7 @@ public class FormationView : MonoBehaviour
     [SerializeField] private Image[] slotImages = new Image[9];
     [SerializeField] private OwnedCharacterListView rosterList;
     private string selectedId = string.Empty;
+    private readonly PartyFormation draftFormation = new PartyFormation();
 
     private void Awake()
     {
@@ -36,6 +37,12 @@ public class FormationView : MonoBehaviour
     private void Open()
     {
         selectedId = string.Empty;
+        // 적용 전 편집은 현재 전투와 저장 데이터에 영향을 주지 않습니다.
+        draftFormation.Members.Clear();
+        foreach (PartyMember member in GameManager.Instance.Formation.Members)
+        {
+            draftFormation.Members.Add(new PartyMember { CharacterId = member.CharacterId, FormationSlot = member.FormationSlot });
+        }
 
         if (!uiManager.Switch(UIType.Formation))
         {
@@ -55,7 +62,7 @@ private void Select(string id)
 
     private void Move(int slot)
     {
-        PartyFormation formation = GameManager.Instance.Formation;
+        PartyFormation formation = draftFormation;
         PartyMember placedMember = FindAt(slot);
 
         if (placedMember != null)
@@ -86,7 +93,7 @@ private void Select(string id)
 
     private void Apply()
     {
-        foreach (PartyMember member in GameManager.Instance.Formation.Members)
+        foreach (PartyMember member in draftFormation.Members)
         {
             if (member.FormationSlot == 0)
             {
@@ -95,6 +102,12 @@ private void Select(string id)
             }
         }
 
+        PartyFormation formation = GameManager.Instance.Formation;
+        formation.Members.Clear();
+        foreach (PartyMember member in draftFormation.Members)
+        {
+            formation.Members.Add(new PartyMember { CharacterId = member.CharacterId, FormationSlot = member.FormationSlot });
+        }
         GameManager.Instance.SaveFormation();
 
         BattleManager battle = GameManager.Instance.Battle;
@@ -192,7 +205,7 @@ private Sprite GetSprite(string id)
 
     private PartyMember FindAt(int slot)
     {
-        foreach (PartyMember member in GameManager.Instance.Formation.Members)
+        foreach (PartyMember member in draftFormation.Members)
         {
             if (member.FormationSlot == slot)
             {

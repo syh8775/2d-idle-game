@@ -45,8 +45,9 @@ public class BattleUnit
         Side = BattleUnitSide.Ally;
         FormationSlot = member.FormationSlot;
 
-        Row = (member.FormationSlot - 1) / 3 + 1;
-        Column = (member.FormationSlot - 1) % 3 + 1;
+        // 화면의 7·4·1 / 8·5·2 / 9·6·3 배치: 오른쪽 1·2·3이 전열입니다.
+        Row = (member.FormationSlot - 1) % 3 + 1;
+        Column = (member.FormationSlot - 1) / 3 + 1;
 
         MaxHitPoints = GameUtil.GetLevelStat(definition.HitPoints, level);
         CurrentHitPoints = MaxHitPoints;
