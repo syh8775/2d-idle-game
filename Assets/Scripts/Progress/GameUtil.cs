@@ -1,5 +1,6 @@
 public static class GameUtil
 {
+    public const int MaxLevel = 50;
     public static int GetLevelCost(int level)
     {
         if (level < 1)

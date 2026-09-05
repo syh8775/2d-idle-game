@@ -82,14 +82,14 @@ private void Refresh()
         nameText.text = definition.DisplayName;
         rarityText.text = GameUtil.GetStars(definition.Rarity);
         roleText.text = definition.Role;
-        levelText.text = "Lv. " + progress.Level + " / 50";
-        levelFill.rectTransform.sizeDelta = new Vector2(220f * Mathf.Clamp01(progress.Level / 50f), 10f);
+        levelText.text = "Lv. " + progress.Level + " / " + GameUtil.MaxLevel;
+        levelFill.rectTransform.sizeDelta = new Vector2(220f * Mathf.Clamp01((float)progress.Level / GameUtil.MaxLevel), 10f);
         hpText.text = hp.ToString();
         atkText.text = attack.ToString();
         defText.text = defense.ToString();
         spdText.text = speed.ToString();
-        costText.text = "●  " + cost + " GOLD";
-        growButton.interactable = gameManager.Progress.Gold >= cost;
+        costText.text = progress.Level >= GameUtil.MaxLevel ? "최대 레벨" : "●  " + cost + " GOLD";
+        growButton.interactable = progress.Level < GameUtil.MaxLevel && gameManager.Progress.Gold >= cost;
 
         if (rosterList != null)
         {

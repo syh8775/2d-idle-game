@@ -26,6 +26,7 @@ public class GameManager : MonoBehaviour
 private Coroutine retryCoroutine;
     private float activeTimeSaveTimer;
     private float resultEndsAt;
+    private bool isApplicationPaused;
 
     public DataManager Data
     {
@@ -201,7 +202,7 @@ private void Start()
 
         CharacterProgressModel character = Progress.GetCharacter(characterId);
 
-        if (character == null)
+        if (character == null || character.Level >= GameUtil.MaxLevel)
         {
             return false;
         }
@@ -477,7 +478,7 @@ public int ClaimOffline()
 
     private void SaveActiveTime()
     {
-        if (!IsInitialized || saveManager == null || Progress == null)
+        if (!IsInitialized || isApplicationPaused || saveManager == null || Progress == null)
         {
             return;
         }
@@ -611,6 +612,8 @@ Progress = new PlayerProgressModel();
 
 private void Update()
     {
+        if (isApplicationPaused) return;
+
         if (Input.GetKeyDown(KeyCode.F12))
         {
             ResetProgress();
@@ -636,10 +639,19 @@ private void Update()
 
     private void OnApplicationPause(bool paused)
     {
+        if (!IsInitialized || paused == isApplicationPaused) return;
         if (paused)
         {
             SaveActiveTime();
+            isApplicationPaused = true;
+            return;
         }
+
+        // 같은 복귀 알림이 반복되어도 중단 시간을 한 번만 보상합니다.
+        isApplicationPaused = false;
+        AddOfflineGold(System.DateTime.UtcNow.Ticks);
+        activeTimeSaveTimer = 0f;
+        SaveProgress();
     }
 
     private void OnApplicationQuit()

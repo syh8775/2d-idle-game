@@ -74,10 +74,7 @@ if (progress.PendingOfflineSeconds < 0)
 
             foreach (CharacterProgressModel character in progress.Characters)
             {
-                if (character.Level < 1)
-                {
-                    character.Level = 1;
-                }
+                character.Level = Mathf.Clamp(character.Level, 1, GameUtil.MaxLevel);
             }
 
             saveBlocked = false;
