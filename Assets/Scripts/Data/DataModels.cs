@@ -28,7 +28,6 @@ public class SkillDefinition
     public string DisplayName;
     public float CooldownSeconds;
     public float EffectMultiplier;
-    public string IconAssetPath;
 }
 
 [Serializable]
@@ -38,7 +37,6 @@ public class CharacterDefinition
     public string DisplayName;
     public string Rarity;
     public string Role;
-    public string BattleAssetPath;
     public int HitPoints;
     public int Attack;
     public int Defense;
@@ -51,7 +49,6 @@ public class EnemyDefinition
 {
     public string Id;
     public string DisplayName;
-    public string BattleAssetPath;
     public int HitPoints;
     public int Attack;
     public int Defense;
@@ -63,7 +60,6 @@ public class StageDefinition
 {
     public string Id;
     public string DisplayName;
-    public string ChapterId;
     public string FormationId;
     public float TimeLimitSeconds;
     public string RewardId;

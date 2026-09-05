@@ -3,114 +3,33 @@ using UnityEngine.UI;
 
 public class FormationView : MonoBehaviour
 {
-    private GameObject panel;
-    private UIManager uiManager;
-    private UIButton openButton;
-    private UIButton applyButton;
-    private Text message;
-    private Button[] slotButtons = new Button[9];
-    private Image[] slotImages = new Image[9];
-    private OwnedCharacterListView rosterList;
+    [SerializeField] private GameObject panel;
+    [SerializeField] private UIManager uiManager;
+    [SerializeField] private UIButton openButton;
+    [SerializeField] private UIButton applyButton;
+    [SerializeField] private Text message;
+    [SerializeField] private Button[] slotButtons = new Button[9];
+    [SerializeField] private Image[] slotImages = new Image[9];
+    [SerializeField] private OwnedCharacterListView rosterList;
     private string selectedId = string.Empty;
 
-private void Awake()
+    private void Awake()
     {
-        panel = transform.Find("Panel").gameObject;
-
-        UIFrame.Build(panel.transform, new Vector2(900f, 1500f), Vector2.zero);
-
-
-        uiManager = GetComponentInParent<UIManager>();
-
-        Transform oldTitle = panel.transform.Find("Title");
-        if (oldTitle != null)
-        {
-            oldTitle.gameObject.SetActive(false);
-        }
-
-        Transform guide = panel.transform.Find("Guide");
-        if (guide != null)
-        {
-            guide.gameObject.SetActive(false);
-        }
-
-        UIFrame.MakeHeader(panel.transform, uiManager.UIFont, "편성", 645f);
-
-        panel.transform.SetParent(uiManager.transform, false);
-        panel.GetComponent<RectTransform>().anchoredPosition = new Vector2(0f, 60f);
-        openButton = transform.Find("OpenButton").GetComponent<UIButton>();
-
-        applyButton = panel.transform.Find("ApplyButton").GetComponent<UIButton>();
-        applyButton.GetComponentInChildren<Text>().text = "적용하고 재시작";
-        applyButton.GetComponent<RectTransform>().anchoredPosition = new Vector2(0f, -620f);
-        RectTransform memberRoot = panel.transform.Find("Members").GetComponent<RectTransform>();
-        memberRoot.anchoredPosition = new Vector2(0f, -270f);
-        memberRoot.sizeDelta = new Vector2(820f, 560f);
-
-        panel.transform.Find("Board").GetComponent<RectTransform>().anchoredPosition = new Vector2(0f, 270f);
-        message = panel.transform.Find("Message").GetComponent<Text>();
-
-        Image panelImage = panel.GetComponent<Image>();
-        if (panelImage == null)
-        {
-            panelImage = panel.AddComponent<Image>();
-            panelImage.color = Color.clear;
-        }
-        panelImage.raycastTarget = true;
-
-        UIFrame.MakeClose(panel.transform, uiManager.UIFont, new Vector2(390f, 645f), Close);
-
+        // 고정 UI는 프리팹에 보존하고 실행 시에는 입력만 연결합니다.
         openButton.Bind(Open);
         applyButton.Bind(Apply);
-
-        Transform boardRoot = panel.transform.Find("Board");
-        Image sourceFrame = boardRoot.Find("Slot_01").GetComponent<Image>();
-        Sprite slotFrame = sourceFrame.overrideSprite != null ? sourceFrame.overrideSprite : sourceFrame.sprite;
-
-        foreach (Transform child in boardRoot)
+        panel.transform.Find("CloseButton").GetComponent<UIButton>().Bind(Close);
+        for (int i = 0; i < slotButtons.Length; i++)
         {
-            Destroy(child.gameObject);
+            int slot = i + 1;
+            slotButtons[i].onClick.AddListener(delegate { Move(slot); });
         }
-
-        GridLayoutGroup grid = boardRoot.GetComponent<GridLayoutGroup>();
-        if (grid == null)
-        {
-            grid = boardRoot.gameObject.AddComponent<GridLayoutGroup>();
-        }
-
-        grid.cellSize = new Vector2(140f, 140f);
-        grid.spacing = new Vector2(25f, 0f);
-        grid.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
-        grid.constraintCount = 3;
-        grid.startCorner = GridLayoutGroup.Corner.UpperLeft;
-        grid.startAxis = GridLayoutGroup.Axis.Horizontal;
-        grid.childAlignment = TextAnchor.MiddleCenter;
-
-        RectTransform boardRect = boardRoot.GetComponent<RectTransform>();
-        boardRect.sizeDelta = new Vector2(470f, 420f);
-
-        int[] layoutSlots = { 7, 4, 1, 8, 5, 2, 9, 6, 3 };
-        for (int i = 0; i < layoutSlots.Length; i++)
-        {
-            int slot = layoutSlots[i];
-            FormationSlotView slotView = FormationSlotView.Create(boardRoot, uiManager, slotFrame, slot, delegate { Move(slot); });
-            slotButtons[slot - 1] = slotView.Button;
-            slotImages[slot - 1] = slotView.Portrait;
-        }
-
         panel.SetActive(false);
     }
 
     private void Start()
     {
-        Transform memberRoot = panel.transform.Find("Members");
-        foreach (Transform child in memberRoot)
-        {
-            Destroy(child.gameObject);
-        }
-
-        rosterList = OwnedCharacterListView.Create(memberRoot, uiManager, GameManager.Instance, true, Select);
-        rosterList.transform.localScale = Vector3.one;
+        rosterList.Initialize(uiManager, GameManager.Instance, true, Select);
         Refresh();
     }
 

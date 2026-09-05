@@ -147,7 +147,6 @@ public class DataManager : MonoBehaviour
                 DisplayName = Required(row, "displayName"),
                 Rarity = Required(row, "rarity"),
                 Role = Required(row, "role"),
-                BattleAssetPath = Optional(row, "battleAssetPath"),
                 HitPoints = Integer(row, "hp"),
                 Attack = Integer(row, "attack"),
                 Defense = Integer(row, "defense"),
@@ -178,8 +177,7 @@ public class DataManager : MonoBehaviour
                 EffectType = Required(row, "effectType"),
                 DisplayName = Required(row, "displayName"),
                 CooldownSeconds = Decimal(row, "cooldownSeconds"),
-                EffectMultiplier = Decimal(row, "effectMultiplier"),
-                IconAssetPath = Optional(row, "iconAssetPath")
+                EffectMultiplier = Decimal(row, "effectMultiplier")
             };
 
             if (skills.ContainsKey(definition.Id))
@@ -201,7 +199,6 @@ public class DataManager : MonoBehaviour
             {
                 Id = Required(row, "id"),
                 DisplayName = Required(row, "displayName"),
-                BattleAssetPath = Optional(row, "battleAssetPath"),
                 HitPoints = Integer(row, "hp"),
                 Attack = Integer(row, "attack"),
                 Defense = Integer(row, "defense"),
@@ -227,7 +224,6 @@ public class DataManager : MonoBehaviour
             {
                 Id = Required(row, "id"),
                 DisplayName = Required(row, "displayName"),
-                ChapterId = Required(row, "chapterId"),
                 FormationId = Required(row, "formationId"),
                 TimeLimitSeconds = Decimal(row, "timeLimitSeconds"),
                 RewardId = Required(row, "rewardId"),
@@ -313,16 +309,6 @@ public class DataManager : MonoBehaviour
         if (!row.ContainsKey(key) || string.IsNullOrWhiteSpace(row[key]))
         {
             throw new FormatException("필수 항목이 비어 있습니다: " + key);
-        }
-
-        return row[key];
-    }
-
-    private static string Optional(Dictionary<string, string> row, string key)
-    {
-        if (!row.ContainsKey(key))
-        {
-            return string.Empty;
         }
 
         return row[key];

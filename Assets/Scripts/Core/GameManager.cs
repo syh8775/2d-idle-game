@@ -183,7 +183,7 @@ private void TrackSession(BattleSession session)
 
 private void Start()
     {
-        CreateMainUI();
+        ConnectMainUI();
 
         if (IsInitialized && battleManager.CurrentSession == null)
         {
@@ -537,7 +537,7 @@ public int ClaimOffline()
             Progress.PartyMembers.Add(savedMember);
         }
     }
-private void CreateMainUI()
+private void ConnectMainUI()
     {
         UIManager uiManager = FindFirstObjectByType<UIManager>();
 
@@ -547,11 +547,11 @@ private void CreateMainUI()
             return;
         }
 
-        GrowthView.Create(uiManager, this);
-        DungeonView.Create(uiManager);
-        DrawView.Create(uiManager);
-        OfflineRewardView.Create(uiManager, this);
-        PauseMenuView.Create(uiManager);
+        uiManager.GetComponentInChildren<GrowthView>(true).Initialize(uiManager, this);
+        uiManager.GetComponentInChildren<DungeonView>(true).Initialize(uiManager);
+        uiManager.GetComponentInChildren<DrawView>(true).Initialize(uiManager);
+        uiManager.GetComponentInChildren<OfflineRewardView>(true).Initialize(uiManager, this);
+        uiManager.GetComponentInChildren<PauseMenuView>(true).Initialize(uiManager);
     }
 
     private void ResetProgress()
